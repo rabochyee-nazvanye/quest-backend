@@ -20,9 +20,9 @@ namespace Quest.DAL.Data
         public DbSet<QuestEntity> Quests { get; set; }
         public DbSet<Team> Teams { get; set; }
         public DbSet<TeamUser> TeamUsers { get; set; }
-
-
-
+        public DbSet<Task> Tasks { get; set; }
+        public DbSet<Hint> Hints { get; set; }
+        
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<TeamUser>()

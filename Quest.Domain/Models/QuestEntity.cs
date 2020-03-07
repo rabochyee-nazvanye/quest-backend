@@ -19,5 +19,7 @@ namespace Quest.Domain.Models
         public string AuthorId { get; set; }
         [ForeignKey("AuthorId")]
         public ApplicationUser Author { get; set; }
+        
+        public List<Task> Tasks { get; set; }
     }
 }
