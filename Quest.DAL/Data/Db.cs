@@ -10,6 +10,7 @@ namespace Quest.DAL.Data
         public Db(DbContextOptions<Db> options)
             : base(options)
         {
+            Database.EnsureCreated();
         }
 
         public DbSet<ApplicationUser> Users { get; set; }
