@@ -1,6 +1,6 @@
 ﻿namespace Quest.Domain.Models
 {
-    public class CompletedTask
+    public class TaskAttemptTeam
     {
         public int TeamId { get; set; }
         public Team Team { get; set; }

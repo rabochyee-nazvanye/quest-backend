@@ -11,5 +11,6 @@ namespace Quest.Domain.Models
         public List<QuestEntity> Quests { get; set; }
 
         public ICollection<TeamUser> TeamUsers { get; set; }
+        public ICollection<Moderator> Moderators { get; set; }
     }
 }

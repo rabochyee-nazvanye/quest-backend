@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Quest.Domain.Enums;
@@ -17,5 +18,7 @@ namespace Quest.Domain.Models
         public string Question { get; set; }
         public string CorrectAnswer { get; set; }
         public string Group { get; set; }
+        
+        public ICollection<TaskAttemptTeam> TaskAttemptTeams { get; set; }
     }
 }

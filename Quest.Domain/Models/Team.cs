@@ -12,5 +12,7 @@ namespace Quest.Domain.Models
         public string Name { get; set; }
 
         public ICollection<TeamUser> TeamUsers { get; set; }
+        public ICollection<TaskAttemptTeam> TaskAttemptTeams { get; set; }
+        public ICollection<UsedTeamHint> UsedTeamHints { get; set; } 
     }
 }

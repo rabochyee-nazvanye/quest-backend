@@ -21,5 +21,7 @@ namespace Quest.Domain.Models
         public ApplicationUser Author { get; set; }
         
         public List<Task> Tasks { get; set; }
+        
+        public ICollection<Moderator> Moderators { get; set; }
     }
 }
