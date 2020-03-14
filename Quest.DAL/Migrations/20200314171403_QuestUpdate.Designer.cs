@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Quest.DAL.Data;
@@ -9,9 +10,10 @@ using Quest.DAL.Data;
 namespace Quest.DAL.Migrations
 {
     [DbContext(typeof(Db))]
-    partial class DbModelSnapshot : ModelSnapshot
+    [Migration("20200314171403_QuestUpdate")]
+    partial class QuestUpdate
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -383,12 +385,7 @@ namespace Quest.DAL.Migrations
                     b.Property<string>("Name")
                         .HasColumnType("text");
 
-                    b.Property<int?>("QuestEntityId")
-                        .HasColumnType("integer");
-
                     b.HasKey("Id");
-
-                    b.HasIndex("QuestEntityId");
 
                     b.ToTable("Teams");
                 });
@@ -542,13 +539,6 @@ namespace Quest.DAL.Migrations
                         .HasForeignKey("TeamId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-                });
-
-            modelBuilder.Entity("Quest.Domain.Models.Team", b =>
-                {
-                    b.HasOne("Quest.Domain.Models.QuestEntity", null)
-                        .WithMany("Teams")
-                        .HasForeignKey("QuestEntityId");
                 });
 
             modelBuilder.Entity("Quest.Domain.Models.TeamUser", b =>
