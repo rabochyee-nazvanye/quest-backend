@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using Quest.API.Models;
+using Quest.API.Models.ViewModels.Accounts;
 using Quest.API.Services;
 using Quest.Domain.Models;
 
@@ -17,7 +18,6 @@ using Quest.Domain.Models;
 
 namespace Quest.API.Controllers
 {
-    
     [Authorize]
     [ApiController]
     [Route("[controller]")]
@@ -37,7 +37,7 @@ namespace Quest.API.Controllers
 
         [AllowAnonymous]
         [HttpPost]
-        public async Task<IActionResult> Login([FromBody]LoginModel login)
+        public async Task<IActionResult> Login([FromBody]LoginVM login)
         {
             if (!ModelState.IsValid)
                 return BadRequest();

@@ -13,8 +13,9 @@ namespace Quest.Domain.Models
 
         public string Name { get; set; }
         public string Description { get; set; }
-
-        public DateTime Date { get; set; }
+        public string ImageUrl { get; set; }
+        public DateTime RegistrationDeadline { get; set; }
+        public DateTime StartDate { get; set; }
         
         public string AuthorId { get; set; }
         [ForeignKey("AuthorId")]
@@ -23,5 +24,9 @@ namespace Quest.Domain.Models
         public List<Task> Tasks { get; set; }
         
         public ICollection<AppUserQuest> AppUserQuests { get; set; }
+
+        public string InviteTokenSecret { get; set; }
+
+        public List<Team> Teams { get; set; }
     }
 }

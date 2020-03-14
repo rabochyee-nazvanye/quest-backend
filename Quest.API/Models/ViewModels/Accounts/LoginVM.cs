@@ -1,8 +1,8 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Quest.API.Models
+namespace Quest.API.Models.ViewModels.Accounts
 {
-    public class LoginModel
+    public class LoginVM
     {
         [Required]
         public string Username { get; set; }
