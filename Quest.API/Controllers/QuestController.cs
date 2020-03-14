@@ -19,6 +19,7 @@ namespace Quest.API.Controllers
             _db = context;
         }
         
+        [HttpGet]
         [AllowAnonymous]
         [Route("[controller]")]
         public IActionResult ListAvailableQuests()
@@ -27,6 +28,7 @@ namespace Quest.API.Controllers
             return Ok(data);
         }
         
+        [HttpGet]
         [AllowAnonymous]
         [Route("[controller]/{id}")]
         public IActionResult GetQuest(int id)
