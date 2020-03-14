@@ -18,7 +18,7 @@ namespace Quest.DAL.Data
         public DbSet<TeamUser> TeamUsers { get; set; }
         public DbSet<Task> Tasks { get; set; }
         public DbSet<Hint> Hints { get; set; }
-        public DbSet<Moderator> Moderator { get; set; }
+        public DbSet<AppUserQuest> AppUserQuests { get; set; }
         public DbSet<TaskAttemptTeam> TaskAttemptTeams { get; set; }
         public DbSet<UsedTeamHint> UsedTeamHints { get; set; }
         public DbSet<TaskAttempt> TaskAttempts { get; set; }
@@ -41,19 +41,19 @@ namespace Quest.DAL.Data
                 .IsRequired();
             
             
-            modelBuilder.Entity<Moderator>()
+            modelBuilder.Entity<AppUserQuest>()
                 .HasKey(k => new { k.QuestId, k.UserId });
 
-            modelBuilder.Entity<Moderator>()
+            modelBuilder.Entity<AppUserQuest>()
                 .HasOne(u => u.User)
-                .WithMany(m => m.Moderators)
-                .HasForeignKey(u => u.QuestId)
+                .WithMany(m => m.AppUserQuests)
+                .HasForeignKey(u => u.UserId)
                 .IsRequired();
 
-            modelBuilder.Entity<Moderator>()
+            modelBuilder.Entity<AppUserQuest>()
                 .HasOne(u => u.Quest)
-                .WithMany(m => m.Moderators)
-                .HasForeignKey(u => u.UserId)
+                .WithMany(m => m.AppUserQuests)
+                .HasForeignKey(u => u.QuestId)
                 .IsRequired();
             
             
@@ -63,13 +63,13 @@ namespace Quest.DAL.Data
             modelBuilder.Entity<TaskAttemptTeam>()
                 .HasOne(u => u.Team)
                 .WithMany(m => m.TaskAttemptTeams)
-                .HasForeignKey(u => u.TaskId)
+                .HasForeignKey(u => u.TeamId)
                 .IsRequired();
 
             modelBuilder.Entity<TaskAttemptTeam>()
                 .HasOne(u => u.Task)
                 .WithMany(m => m.TaskAttemptTeams)
-                .HasForeignKey(u => u.TeamId)
+                .HasForeignKey(u => u.TaskId)
                 .IsRequired();
 
 
@@ -79,13 +79,13 @@ namespace Quest.DAL.Data
             modelBuilder.Entity<UsedTeamHint>()
                 .HasOne(u => u.Team)
                 .WithMany(m => m.UsedTeamHints)
-                .HasForeignKey(u => u.HintId)
+                .HasForeignKey(u => u.TeamId)
                 .IsRequired();
 
             modelBuilder.Entity<UsedTeamHint>()
                 .HasOne(u => u.Hint)
                 .WithMany(m => m.UsedTeamHints)
-                .HasForeignKey(u => u.TeamId)
+                .HasForeignKey(u => u.HintId)
                 .IsRequired();
             
             

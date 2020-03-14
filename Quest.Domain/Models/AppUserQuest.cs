@@ -1,6 +1,6 @@
 ﻿namespace Quest.Domain.Models
 {
-    public class Moderator
+    public class AppUserQuest
     {
         public int QuestId { get; set; }
         public QuestEntity Quest { get; set; }

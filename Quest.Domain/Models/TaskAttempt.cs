@@ -9,11 +9,11 @@ namespace Quest.Domain.Models
         [Key]
         public int Id { get; set; }
 
-        public string TaskId { get; set; }
+        public int TaskId { get; set; }
         [ForeignKey("TaskId")]
         public Task Task { get; set; }
         
-        public string TeamId { get; set; }
+        public int TeamId { get; set; }
         [ForeignKey("TeamId")]
         public Team Team { get; set; }
 

@@ -10,7 +10,7 @@ namespace Quest.Domain.Models
         public string AvatarUrl { get; set; }
         public List<QuestEntity> Quests { get; set; }
 
-        public ICollection<TeamUser> TeamUsers { get; set; }
-        public ICollection<Moderator> Moderators { get; set; }
+        public List<TeamUser> TeamUsers { get; set; }
+        public List<AppUserQuest> AppUserQuests { get; set; }
     }
 }

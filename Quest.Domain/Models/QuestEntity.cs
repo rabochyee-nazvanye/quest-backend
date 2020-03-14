@@ -22,6 +22,6 @@ namespace Quest.Domain.Models
         
         public List<Task> Tasks { get; set; }
         
-        public ICollection<Moderator> Moderators { get; set; }
+        public ICollection<AppUserQuest> AppUserQuests { get; set; }
     }
 }
