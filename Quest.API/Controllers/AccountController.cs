@@ -17,6 +17,7 @@ using Quest.Domain.Models;
 
 namespace Quest.API.Controllers
 {
+    
     [Authorize]
     [ApiController]
     [Route("[controller]")]
