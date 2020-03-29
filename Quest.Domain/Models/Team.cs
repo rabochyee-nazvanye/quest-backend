@@ -10,6 +10,8 @@ namespace Quest.Domain.Models
         [Key]
         public int Id { get; set; }
         public string Name { get; set; }
+        
+        public string InviteTokenSecret { get; set; }
 
         public ICollection<TeamUser> TeamUsers { get; set; }
         public ICollection<TaskAttemptTeam> TaskAttemptTeams { get; set; }

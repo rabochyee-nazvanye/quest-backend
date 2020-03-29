@@ -26,6 +26,7 @@ namespace Quest.Domain.Models
         public ICollection<AppUserQuest> AppUserQuests { get; set; }
 
         public string InviteTokenSecret { get; set; }
+        public int MaxTeamSize { get; set; }
 
         public List<Team> Teams { get; set; }
     }
