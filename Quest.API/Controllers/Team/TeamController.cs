@@ -131,11 +131,22 @@ namespace Quest.API.Controllers
                 return BadRequest("Couldn't find team with that ID");
             }
 
+            var quest = await _db.Quests.FirstOrDefaultAsync(x => x.Teams.Any(x => x.Id == teamId));
+            if (quest == null)
+            {
+                return BadRequest("The team is not linked to any quest");
+            }
+            
             if (team.InviteTokenSecret != requestTeamSecret)
             {
                 return BadRequest("Bad secret");
             }
 
+            if (team.TeamUsers.Count(x => x.TeamId == teamId) + 1 > quest.MaxTeamSize)
+            {
+                return BadRequest("You couldn't add more people to the team!");
+            }
+            
             team.TeamUsers.Add(new TeamUser()
             {
                 User = user,
