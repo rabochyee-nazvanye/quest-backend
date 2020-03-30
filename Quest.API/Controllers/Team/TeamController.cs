@@ -3,10 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Quest.API.Models.ViewModels.Teams;
+using Quest.API.Services;
 using Quest.DAL.Data;
 using Quest.Domain.Models;
 
@@ -85,14 +87,16 @@ namespace Quest.API.Controllers
             var team = new Team()
             {
                 Name = model.Name,
-                TeamUsers = new List<TeamUser>()
+                TeamUsers = new List<TeamUser>(),
+                //Todo: Remove Hardcoded values
+                InviteTokenSecret = TeamSecretService.GenerateTeamToken(6)
             };
 
             team.TeamUsers.Add(new TeamUser()
             {
                 Team = team,
                 User = capitan,
-                UserId = capitan.Id
+                UserId = capitan.Id,
             });
 
             if (quest.Teams == null)
