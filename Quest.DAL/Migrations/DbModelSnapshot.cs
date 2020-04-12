@@ -273,6 +273,9 @@ namespace Quest.DAL.Migrations
                     b.Property<string>("InviteTokenSecret")
                         .HasColumnType("text");
 
+                    b.Property<int>("MaxTeamSize")
+                        .HasColumnType("integer");
+
                     b.Property<string>("Name")
                         .HasColumnType("text");
 
@@ -379,6 +382,9 @@ namespace Quest.DAL.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
                         .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
+
+                    b.Property<string>("InviteTokenSecret")
+                        .HasColumnType("text");
 
                     b.Property<string>("Name")
                         .HasColumnType("text");
