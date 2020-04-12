@@ -12,6 +12,7 @@ using Microsoft.IdentityModel.Tokens;
 using Quest.API.Models;
 using Quest.API.Models.ViewModels.Accounts;
 using Quest.API.Services;
+using Quest.DAL.Data;
 using Quest.Domain.Models;
 
 // For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
@@ -27,14 +28,14 @@ namespace Quest.API.Controllers
         private readonly ITokenService _tokenService;
         private readonly SignInManager<ApplicationUser> _signInManager;
 
-        public AccountController(IConfiguration config, ITokenService tokenService, SignInManager<ApplicationUser> signInManager)
+        public AccountController(IConfiguration config, ITokenService tokenService, SignInManager<ApplicationUser> signInManager, UserManager<ApplicationUser> userManager, Db context)
         {
             _config = config;
             _tokenService = tokenService;
             _signInManager = signInManager;
         }
-
-
+        
+        
         [AllowAnonymous]
         [HttpPost]
         public async Task<IActionResult> Login([FromBody]LoginVM login)
