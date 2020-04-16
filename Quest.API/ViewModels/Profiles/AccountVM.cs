@@ -5,9 +5,9 @@ using Quest.Domain.Models;
 
 namespace Quest.API.Models.ViewModels.Profiles
 {
-    public class ProfileVM
+    public class AccountVM
     {
-        public ProfileVM(ApplicationUser row)
+        public AccountVM(ApplicationUser row)
         {
             Id = row.Id;
             Name = row.UserName;

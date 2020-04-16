@@ -14,7 +14,7 @@ namespace Quest.API.Models.ViewModels.Teams
         {
             Id = row.Id;
             Name = row.Name;
-            Users = row.TeamUsers.Select(x => new UserBasicInfoVM(x.User)).ToList();
+            Users = row.Members.Select(x => new UserBasicInfoVM(x.User)).ToList();
         }
         public int Id { get; set; }
         
