@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Quest.API.Models.ViewModels.Accounts
+namespace Quest.API.ViewModels.Sessions
 {
     public class LoginVM
     {

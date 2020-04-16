@@ -1,8 +1,8 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Quest.API.Models.ViewModels.Teams
+namespace Quest.API.ViewModels.Teams
 {
-    public class CreateTeamInfoVM
+    public class CreateTeamVM
     {
         [Required]
         public int QuestId { get; set; }
