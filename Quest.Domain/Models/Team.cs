@@ -32,7 +32,7 @@ namespace Quest.Domain.Models
         [ForeignKey("QuestId")]
         public QuestEntity Quest { get; set; }
         
-        private string InviteTokenSecret { get; set; }
+        public string InviteTokenSecret { get; set; }
         public bool ValidateSecret(string secret) => InviteTokenSecret == secret;
 
         public ICollection<TeamUser> Members { get; set; }

@@ -6,7 +6,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using Quest.Application.Accounts.Queries;
 using Quest.DAL.Data;
 using Quest.Domain.Models;
 
@@ -32,6 +31,8 @@ namespace Quest.Application.Teams.Commands
             var team = await _context.Teams
                 .Where(x => x.Id == request.TeamId)
                 .Include(x => x.Quest)
+                .Include(x => x.Members)
+                .ThenInclude(x => x.User)
                 .FirstOrDefaultAsync(cancellationToken: cancellationToken);
             if (team == null)
                 return BaseResponse.Failure<bool>("Couldn't find team with that ID");
@@ -45,6 +46,7 @@ namespace Quest.Application.Teams.Commands
             if (team.Members.Count >= team.Quest.MaxTeamSize)
                 return BaseResponse.Failure<bool>("You couldn't add more people to the team!");
 
+          
             team.Members.Add(new TeamUser
             {
                 User = user,
@@ -52,7 +54,7 @@ namespace Quest.Application.Teams.Commands
             });
 
             await _context.SaveChangesAsync(cancellationToken);
-            return BaseResponse.Success(true, "User was successfully added");
+            return BaseResponse.Success(true, "User was successfully added to the team");
         }
     }
 }

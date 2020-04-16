@@ -20,12 +20,14 @@ namespace Quest.Application.Quests.Queries
             _context = context;
         }
 
-        public async  Task<QuestEntity> Handle(GetQuestByIdQuery request, CancellationToken cancellationToken)
+        public async Task<QuestEntity> Handle(GetQuestByIdQuery request, CancellationToken cancellationToken)
         {
             return await _context.Quests
                 .Where(x => x.Id == request.QuestId)
                 .Include(x => x.Author)
                 .Include(x => x.Teams)
+                .ThenInclude(x => x.Members)
+                .ThenInclude(x => x.User)
                 .FirstOrDefaultAsync(cancellationToken: cancellationToken);
         }
     }

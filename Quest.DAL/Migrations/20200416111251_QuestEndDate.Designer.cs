@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Quest.DAL.Data;
@@ -9,9 +10,10 @@ using Quest.DAL.Data;
 namespace Quest.DAL.Migrations
 {
     [DbContext(typeof(Db))]
-    partial class DbModelSnapshot : ModelSnapshot
+    [Migration("20200416111251_QuestEndDate")]
+    partial class QuestEndDate
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -258,6 +260,9 @@ namespace Quest.DAL.Migrations
                     b.Property<string>("ImageUrl")
                         .HasColumnType("text");
 
+                    b.Property<string>("InviteTokenSecret")
+                        .HasColumnType("text");
+
                     b.Property<int>("MaxTeamSize")
                         .HasColumnType("integer");
 
@@ -370,9 +375,6 @@ namespace Quest.DAL.Migrations
 
                     b.Property<string>("CaptainUserId")
                         .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("InviteTokenSecret")
                         .HasColumnType("text");
 
                     b.Property<string>("Name")

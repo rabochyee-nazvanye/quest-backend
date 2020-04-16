@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Runtime.Serialization.Json;
 using System.Threading.Tasks;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -7,7 +8,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
-using Quest.API.Models.ViewModels.Quests;
+using Quest.API.ViewModels.Quests;
 using Quest.Application.Quests.Commands;
 using Quest.Application.Quests.Queries;
 using Quest.DAL.Data;
@@ -36,7 +37,7 @@ namespace Quest.API.Controllers
         public async Task<IActionResult> Get()
         {
             var data = await _mediator.Send(new GetAllQuestsQuery());
-            return Ok(data);
+            return Json(data.Select(x => new QuestVM(x)));
         }
 
         [HttpGet("{id}")]
@@ -49,7 +50,7 @@ namespace Quest.API.Controllers
             {
                 return NotFound();
             }
-            return Json(new QuestInfoVM(quest));
+            return Json(new QuestVM(quest));
         }
 
         [Authorize]
@@ -67,7 +68,9 @@ namespace Quest.API.Controllers
                 ImageUrl = model.ImageUrl,
                 Name = model.Name,
                 RegistrationDeadline = model.RegistrationDeadline,
-                StartDate = model.StartDate
+                StartDate = model.StartDate,
+                EndDate = model.EndDate,
+                MaxTeamSize = model.MaxTeamSize
             });
 
             if (response.Result == null)

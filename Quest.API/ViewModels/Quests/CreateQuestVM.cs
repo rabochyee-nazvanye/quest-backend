@@ -1,12 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.Linq;
-using Quest.Domain.Models;
-using Task = System.Threading.Tasks.Task;
 
-namespace Quest.API.Models.ViewModels.Quests
+namespace Quest.API.ViewModels.Quests
 {
     public class CreateQuestVM
     { 
@@ -16,7 +11,13 @@ namespace Quest.API.Models.ViewModels.Quests
         public string Description { get; set; }
         [Required]
         public string ImageUrl { get; set; }
+        [Required]
         public DateTime RegistrationDeadline { get; set; }
+        [Required]
         public DateTime StartDate { get; set; }
+        [Required]
+        public DateTime EndDate { get; set; }
+        [Range(0, int.MaxValue)]
+        public int MaxTeamSize { get; set; }
     }
 }

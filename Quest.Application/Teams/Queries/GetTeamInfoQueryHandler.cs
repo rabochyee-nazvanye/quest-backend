@@ -25,6 +25,7 @@ namespace Quest.Application.Teams.Queries
             return await _context.Teams.Where(x => x.Id == request.TeamId)
                     .Include(x => x.Members)
                     .ThenInclude(x => x.User)
+                    .Include(x => x.Captain)
                     .FirstOrDefaultAsync(cancellationToken: cancellationToken);
         }
     }

@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Quest.API.Models.ViewModels.Teams
+namespace Quest.API.ViewModels.Teams
 {
     public class AddUserToTeamVM
     {
