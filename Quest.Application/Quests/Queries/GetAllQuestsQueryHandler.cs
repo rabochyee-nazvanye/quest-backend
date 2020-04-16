@@ -21,7 +21,12 @@ namespace Quest.Application.Quests.Queries
 
         public async Task<List<QuestEntity>> Handle(GetAllQuestsQuery request, CancellationToken cancellationToken)
         {
-            return await _context.Quests.ToListAsync(cancellationToken: cancellationToken);
+            return await _context.Quests
+                .Include(x => x.Author)
+                .Include(x => x.Teams)
+                .ThenInclude(x => x.Members)
+                .ThenInclude(x => x.User)
+                .ToListAsync(cancellationToken: cancellationToken);
         }
     }
 }

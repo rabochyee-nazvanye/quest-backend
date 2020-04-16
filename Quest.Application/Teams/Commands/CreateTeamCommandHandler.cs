@@ -6,7 +6,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using Quest.Application.Accounts.Queries;
 using Quest.Application.Quests.Queries;
 using Quest.DAL.Data;
 using Quest.Domain.Models;
@@ -42,10 +41,12 @@ namespace Quest.Application.Teams.Commands
                 return BaseResponse.Failure<Team>("Couldn't find quest with that ID");
 
             var captainTeams = quest.Teams
-                .Where(x => x.Members.Any(y => y.UserId == captainUser.Id));
+                .Where(x => x.Members.Any(y => y.UserId == captainUser.Id) 
+                            || x.CaptainUserId == captainUser.Id);
             if (captainTeams.Any())
-                return BaseResponse.Failure<Team>("This user is currently tied with one team");
+                return BaseResponse.Failure<Team>("This user is currently member of another team");
 
+           
             if (quest.RegistrationDeadline < DateTime.Now)
                 return BaseResponse.Failure<Team>("You can't register to that event no more");
 
@@ -53,8 +54,14 @@ namespace Quest.Application.Teams.Commands
                 return BaseResponse.Failure<Team>("The team with that name already exists");
 
             var team = new Team(request.Name, captainUser.Id, quest.Id, _teamService.GenerateTeamToken(6));
-
             await _context.Teams.AddAsync(team, cancellationToken);
+
+            await _context.TeamUsers.AddAsync(new TeamUser
+            {
+                Team = team,
+                User = captainUser
+            }, cancellationToken);
+
             await _context.SaveChangesAsync(cancellationToken);
 
             return BaseResponse.Success(team, "Successfully created a new team");
