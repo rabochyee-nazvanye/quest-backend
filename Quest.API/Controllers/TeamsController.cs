@@ -7,8 +7,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Quest.API.Models.ViewModels.Teams;
 using Quest.API.Services;
+using Quest.API.ViewModels.Teams;
 using Quest.Application.Teams.Commands;
 using Quest.Application.Teams.Queries;
 using Quest.DAL.Data;
@@ -19,12 +19,12 @@ namespace Quest.API.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class TeamController : Controller
+    public class TeamsController : Controller
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IMediator _mediator;
 
-        public TeamController(UserManager<ApplicationUser> userManager, IMediator mediator)
+        public TeamsController(UserManager<ApplicationUser> userManager, IMediator mediator)
         {
             _userManager = userManager;
             _mediator = mediator;
@@ -42,13 +42,13 @@ namespace Quest.API.Controllers
                 return NotFound();
             }
 
-            return Json(new TeamInfoVM(team));
+            return Json(new TeamVM(team));
         }
 
 
         [Authorize]
-        [HttpPost("create")]
-        public async Task<IActionResult> Post(CreateTeamInfoVM model)
+        [HttpPost]
+        public async Task<IActionResult> Post(CreateTeamVM model)
         {
             if (!ModelState.IsValid)
             {
@@ -86,10 +86,26 @@ namespace Quest.API.Controllers
         
         
         [Authorize]
-        [HttpDelete("{teamId}/kick/{userId}")]
-        public async Task<IActionResult> KickUserFromTheTeam(int teamId, string userId)
+        [HttpDelete("{teamId}/kick/{userToKickId}")]
+        public async Task<IActionResult> KickUserFromTheTeam(int teamId, string userToKickId)
         {
-            var response = await _mediator.Send(new RemoveUserFromTeamCommand(teamId, userId));
+            var userId = _userManager.GetUserId(User);
+
+            var response = await _mediator.Send(new RemoveUserFromTeamCommand(teamId, userId, userToKickId));
+
+            if (!response.Result)
+                return BadRequest(response.Message);
+
+            return Ok(response.Message);
+        }
+
+        [Authorize]
+        [HttpDelete("{teamId}")]
+        public async Task<IActionResult> RemoveTeam(int teamId)
+        {
+            var userId = _userManager.GetUserId(User);
+
+            var response = await _mediator.Send(new RemoveTeamCommand(userId, teamId));
 
             if (!response.Result)
                 return BadRequest(response.Message);

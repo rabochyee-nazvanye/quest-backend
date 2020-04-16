@@ -13,11 +13,10 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Primitives;
 using Microsoft.IdentityModel.Tokens;
 using Quest.API.Helpers;
-using Quest.API.Models;
-using Quest.API.Models.ViewModels.Accounts;
-using Quest.API.Models.ViewModels.Profiles;
 using Quest.API.Services;
-using Quest.Application.Accounts.Queries;
+using Quest.API.ViewModels.Sessions;
+using Quest.API.ViewModels.Users;
+using Quest.Application.Users.Queries;
 using Quest.DAL.Data;
 using Quest.Domain.Models;
 
@@ -71,14 +70,14 @@ namespace Quest.API.Controllers
         {
             var userId = _userManager.GetUserId(User);
 
-            var user = await _mediator.Send(new GetAccountByIdQuery(userId));
+            var user = await _mediator.Send(new GetUserByIdQuery(userId));
 
             if (user == null)
             {
                 return BadRequest("User with that username not found.");
             }
 
-            return Json(new AccountVM(user));
+            return Json(new UserVM(user));
         }
     }
 }

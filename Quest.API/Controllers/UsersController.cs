@@ -6,18 +6,19 @@ using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 using MediatR;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Primitives;
 using Microsoft.IdentityModel.Tokens;
+using NpgsqlTypes;
 using Quest.API.Helpers;
-using Quest.API.Models;
-using Quest.API.Models.ViewModels.Accounts;
-using Quest.API.Models.ViewModels.Profiles;
 using Quest.API.Services;
-using Quest.Application.Accounts.Queries;
+using Quest.API.ViewModels.Users;
+using Quest.Application.Users.Commands;
+using Quest.Application.Users.Queries;
 using Quest.DAL.Data;
 using Quest.Domain.Models;
 
@@ -31,24 +32,58 @@ namespace Quest.API.Controllers
     public class UsersController : Controller
     {
         private readonly IMediator _mediator;
+        private readonly UserManager<ApplicationUser> _userManager;
+        private readonly SignInManager<ApplicationUser> _signInManager;
+        private readonly ITokenService _tokenService;
 
-        public UsersController(IMediator mediator)
+        public UsersController(IMediator mediator, UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, ITokenService tokenService)
         {
             _mediator = mediator;
+            _userManager = userManager;
+            _signInManager = signInManager;
+            _tokenService = tokenService;
         }
 
         [HttpGet("{name}")]
-        [AllowAnonymous]
         public async Task<IActionResult> GetUserByName(string name)
         {
-            var user = await _mediator.Send(new GetAccountByNameQuery(name));
+            var user = await _mediator.Send(new GetUserByNameQuery(name));
 
             if (user == null)
             {
                 return BadRequest("User with that username not found.");
             }
 
-            return Json(new AccountVM(user));
+            return Json(new UserVM(user));
+        }
+
+        [HttpPost]
+        [AllowAnonymous]
+        public async Task<IActionResult> CreateNewUser(CreateUserVM model)
+        {
+            var userId = _userManager.GetUserId(User);
+            if (userId != null)
+                return BadRequest("Cannot register while logged in!");
+
+            if (!ModelState.IsValid)
+                return BadRequest();
+
+            var response = await _mediator.Send(new CreateUserCommand(model.Username, model.Password));
+            if (response.Result == null)
+            {
+                return BadRequest(response.Message);
+            }
+
+            var user = response.Result;
+            var userPrincipal = await _signInManager.CreateUserPrincipalAsync(user);
+            await _signInManager.Context.SignInAsync(IdentityConstants.ApplicationScheme,
+                userPrincipal,
+                new AuthenticationProperties { IsPersistent = true });
+
+            return Created($"/users/{user.Id}", new
+            {
+                token = _tokenService.BuildToken(user.UserName)
+            });
         }
     }
 }

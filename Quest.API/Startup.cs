@@ -1,11 +1,18 @@
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Globalization;
 using System.Reflection;
 using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Localization;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -16,6 +23,7 @@ using Quest.API.Services;
 using Quest.DAL.Data;
 using Quest.Domain.Models;
 using Microsoft.OpenApi.Models;
+using Quest.API.Helpers;
 using Quest.Application.Teams.Commands;
 using Quest.Domain.Services;
 
@@ -34,11 +42,15 @@ namespace Quest.API
         {
             services.AddCors();
 
-            services.AddControllers(o => {
+            services.AddControllers(o =>
+            {
                 var policy = new AuthorizationPolicyBuilder()
                     .RequireAuthenticatedUser()
                     .Build();
                 o.Filters.Add(new AuthorizeFilter(policy));
+            }).AddJsonOptions(o =>
+            {
+                o.JsonSerializerOptions.Converters.Add(new DateTimeConverter());
             });
 
             // Get Connection string from configuration file
@@ -87,7 +99,7 @@ namespace Quest.API
             services.AddMediatR(typeof(CreateTeamCommand).GetTypeInfo().Assembly);
         }
 
-        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
+      // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             if (env.IsDevelopment())
@@ -95,6 +107,14 @@ namespace Quest.API
                 app.UseDeveloperExceptionPage();
                 app.UseCors(builder => builder.AllowAnyOrigin());
             }
+
+            var supportedCultures = new[] { new CultureInfo("ru-RU") };
+            app.UseRequestLocalization(new RequestLocalizationOptions
+            {
+                DefaultRequestCulture = new RequestCulture("ru-RU"),
+                SupportedCultures = supportedCultures,
+                SupportedUICultures = supportedCultures
+            });
 
             app.UseRouting();
             app.UseSwagger();
