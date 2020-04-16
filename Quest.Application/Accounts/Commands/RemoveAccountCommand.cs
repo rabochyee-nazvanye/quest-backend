@@ -1,0 +1,10 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Text;
+
+namespace Quest.Application.Accounts.Commands
+{
+    class RemoveAccountCommand
+    {
+    }
+}

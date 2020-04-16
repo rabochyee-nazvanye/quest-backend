@@ -48,7 +48,7 @@ namespace Quest.API.Services
             var options = new IdentityOptions();
             var claims = new List<Claim>
             {
-                new Claim(JwtRegisteredClaimNames.Sub, user.UserName),
+                new Claim(JwtRegisteredClaimNames.Sub, user.Id),
                 new Claim(options.ClaimsIdentity.UserIdClaimType, user.Id.ToString()),
                 new Claim(options.ClaimsIdentity.UserNameClaimType, user.UserName)
             };

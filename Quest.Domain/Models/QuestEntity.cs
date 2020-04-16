@@ -22,10 +22,9 @@ namespace Quest.Domain.Models
         public ApplicationUser Author { get; set; }
         
         public List<Task> Tasks { get; set; }
-        
-        public ICollection<AppUserQuest> AppUserQuests { get; set; }
-
+  
         public string InviteTokenSecret { get; set; }
+        public int MaxTeamSize { get; set; }
 
         public List<Team> Teams { get; set; }
     }

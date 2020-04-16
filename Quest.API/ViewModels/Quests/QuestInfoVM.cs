@@ -19,7 +19,7 @@ namespace Quest.API.Models.ViewModels.Quests
             RegistrationDeadline = row.RegistrationDeadline.ToString("dd.MM.yyyy HH:mm");
             StartDate = row.StartDate.ToString("dd.MM.yyyy HH:mm");
             AuthorName = row.Author.UserName;
-            Teams = row.Teams.Select(x => new TeamBasicInfoVM(x)).ToList();
+            Teams = row.Teams.Select(x => new TeamInfoVM(x)).ToList();
         }
         
         public int Id { get; set; }
@@ -33,6 +33,6 @@ namespace Quest.API.Models.ViewModels.Quests
         public string StartDate { get; set; }
 
         public string AuthorName { get; set; }
-        public List<TeamBasicInfoVM> Teams { get; set; }
+        public List<TeamInfoVM> Teams { get; set; }
     }
 }

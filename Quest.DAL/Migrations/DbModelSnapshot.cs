@@ -149,21 +149,6 @@ namespace Quest.DAL.Migrations
                     b.ToTable("AspNetUserTokens");
                 });
 
-            modelBuilder.Entity("Quest.Domain.Models.AppUserQuest", b =>
-                {
-                    b.Property<int>("QuestId")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("UserId")
-                        .HasColumnType("text");
-
-                    b.HasKey("QuestId", "UserId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("AppUserQuests");
-                });
-
             modelBuilder.Entity("Quest.Domain.Models.ApplicationUser", b =>
                 {
                     b.Property<string>("Id")
@@ -273,6 +258,9 @@ namespace Quest.DAL.Migrations
                     b.Property<string>("InviteTokenSecret")
                         .HasColumnType("text");
 
+                    b.Property<int>("MaxTeamSize")
+                        .HasColumnType("integer");
+
                     b.Property<string>("Name")
                         .HasColumnType("text");
 
@@ -380,17 +368,38 @@ namespace Quest.DAL.Migrations
                         .HasColumnType("integer")
                         .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
 
+                    b.Property<string>("CaptainUserId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<string>("Name")
                         .HasColumnType("text");
 
-                    b.Property<int?>("QuestEntityId")
+                    b.Property<int>("QuestId")
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("QuestEntityId");
+                    b.HasIndex("CaptainUserId");
+
+                    b.HasIndex("QuestId");
 
                     b.ToTable("Teams");
+                });
+
+            modelBuilder.Entity("Quest.Domain.Models.TeamHint", b =>
+                {
+                    b.Property<int>("TeamId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("HintId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("TeamId", "HintId");
+
+                    b.HasIndex("HintId");
+
+                    b.ToTable("UsedTeamHints");
                 });
 
             modelBuilder.Entity("Quest.Domain.Models.TeamUser", b =>
@@ -406,21 +415,6 @@ namespace Quest.DAL.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("TeamUsers");
-                });
-
-            modelBuilder.Entity("Quest.Domain.Models.UsedTeamHint", b =>
-                {
-                    b.Property<int>("TeamId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("HintId")
-                        .HasColumnType("integer");
-
-                    b.HasKey("TeamId", "HintId");
-
-                    b.HasIndex("HintId");
-
-                    b.ToTable("UsedTeamHints");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -474,21 +468,6 @@ namespace Quest.DAL.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Quest.Domain.Models.AppUserQuest", b =>
-                {
-                    b.HasOne("Quest.Domain.Models.QuestEntity", "Quest")
-                        .WithMany("AppUserQuests")
-                        .HasForeignKey("QuestId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Quest.Domain.Models.ApplicationUser", "User")
-                        .WithMany("AppUserQuests")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
             modelBuilder.Entity("Quest.Domain.Models.Hint", b =>
                 {
                     b.HasOne("Quest.Domain.Models.Task", "Task")
@@ -501,7 +480,7 @@ namespace Quest.DAL.Migrations
             modelBuilder.Entity("Quest.Domain.Models.QuestEntity", b =>
                 {
                     b.HasOne("Quest.Domain.Models.ApplicationUser", "Author")
-                        .WithMany("Quests")
+                        .WithMany("CreatedQuests")
                         .HasForeignKey("AuthorId");
                 });
 
@@ -532,13 +511,13 @@ namespace Quest.DAL.Migrations
             modelBuilder.Entity("Quest.Domain.Models.TaskAttemptTeam", b =>
                 {
                     b.HasOne("Quest.Domain.Models.Task", "Task")
-                        .WithMany("TaskAttemptTeams")
+                        .WithMany("TaskAttempts")
                         .HasForeignKey("TaskId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("Quest.Domain.Models.Team", "Team")
-                        .WithMany("TaskAttemptTeams")
+                        .WithMany("TaskAttempts")
                         .HasForeignKey("TeamId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -546,27 +525,20 @@ namespace Quest.DAL.Migrations
 
             modelBuilder.Entity("Quest.Domain.Models.Team", b =>
                 {
-                    b.HasOne("Quest.Domain.Models.QuestEntity", null)
+                    b.HasOne("Quest.Domain.Models.ApplicationUser", "Captain")
+                        .WithMany("OwnedTeams")
+                        .HasForeignKey("CaptainUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Quest.Domain.Models.QuestEntity", "Quest")
                         .WithMany("Teams")
-                        .HasForeignKey("QuestEntityId");
-                });
-
-            modelBuilder.Entity("Quest.Domain.Models.TeamUser", b =>
-                {
-                    b.HasOne("Quest.Domain.Models.Team", "Team")
-                        .WithMany("TeamUsers")
-                        .HasForeignKey("TeamId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Quest.Domain.Models.ApplicationUser", "User")
-                        .WithMany("TeamUsers")
-                        .HasForeignKey("UserId")
+                        .HasForeignKey("QuestId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Quest.Domain.Models.UsedTeamHint", b =>
+            modelBuilder.Entity("Quest.Domain.Models.TeamHint", b =>
                 {
                     b.HasOne("Quest.Domain.Models.Hint", "Hint")
                         .WithMany("UsedTeamHints")
@@ -575,8 +547,23 @@ namespace Quest.DAL.Migrations
                         .IsRequired();
 
                     b.HasOne("Quest.Domain.Models.Team", "Team")
-                        .WithMany("UsedTeamHints")
+                        .WithMany("UsedHints")
                         .HasForeignKey("TeamId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Quest.Domain.Models.TeamUser", b =>
+                {
+                    b.HasOne("Quest.Domain.Models.Team", "Team")
+                        .WithMany("Members")
+                        .HasForeignKey("TeamId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Quest.Domain.Models.ApplicationUser", "User")
+                        .WithMany("JoinedTeams")
+                        .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });

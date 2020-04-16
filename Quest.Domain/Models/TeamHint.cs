@@ -1,6 +1,6 @@
 ﻿namespace Quest.Domain.Models
 {
-    public class UsedTeamHint
+    public class TeamHint
     {
         public int HintId { get; set; }
         public Hint Hint { get; set; }
