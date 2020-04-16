@@ -19,6 +19,6 @@ namespace Quest.Domain.Models
         public string CorrectAnswer { get; set; }
         public string Group { get; set; }
         
-        public ICollection<TaskAttemptTeam> TaskAttemptTeams { get; set; }
+        public ICollection<TaskAttemptTeam> TaskAttempts { get; set; }
     }
 }

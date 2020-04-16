@@ -11,6 +11,8 @@
     <Compile Remove="Migrations\20200229192750_initial.Designer.cs" />
     <Compile Remove="Migrations\20200411234114_updateQuestsModel.cs" />
     <Compile Remove="Migrations\20200411234114_updateQuestsModel.Designer.cs" />
+    <Compile Remove="Migrations\20200416093452_ModelRefactoring.cs" />
+    <Compile Remove="Migrations\20200416093452_ModelRefactoring.Designer.cs" />
   </ItemGroup>
 
   <ItemGroup>

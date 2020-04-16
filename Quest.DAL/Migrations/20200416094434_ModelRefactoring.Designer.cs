@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Quest.DAL.Data;
@@ -9,9 +10,10 @@ using Quest.DAL.Data;
 namespace Quest.DAL.Migrations
 {
     [DbContext(typeof(Db))]
-    partial class DbModelSnapshot : ModelSnapshot
+    [Migration("20200416094434_ModelRefactoring")]
+    partial class ModelRefactoring
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -369,7 +371,6 @@ namespace Quest.DAL.Migrations
                         .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
 
                     b.Property<string>("CaptainUserId")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("Name")
@@ -527,9 +528,7 @@ namespace Quest.DAL.Migrations
                 {
                     b.HasOne("Quest.Domain.Models.ApplicationUser", "Captain")
                         .WithMany("OwnedTeams")
-                        .HasForeignKey("CaptainUserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("CaptainUserId");
 
                     b.HasOne("Quest.Domain.Models.QuestEntity", "Quest")
                         .WithMany("Teams")
