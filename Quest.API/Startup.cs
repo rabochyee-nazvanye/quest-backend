@@ -1,4 +1,6 @@
+using System.Reflection;
 using System.Text;
+using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
@@ -14,6 +16,8 @@ using Quest.API.Services;
 using Quest.DAL.Data;
 using Quest.Domain.Models;
 using Microsoft.OpenApi.Models;
+using Quest.Application.Teams.Commands;
+using Quest.Domain.Services;
 
 namespace Quest.API
 {
@@ -26,11 +30,10 @@ namespace Quest.API
 
         public IConfiguration Configuration { get; }
 
-        // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddCors();
-            
+
             services.AddControllers(o => {
                 var policy = new AuthorizationPolicyBuilder()
                     .RequireAuthenticatedUser()
@@ -65,15 +68,23 @@ namespace Quest.API
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration["Jwt:Key"]))
                 };
             });
+
+            //Add custom services to DI container
             services.AddScoped<ITokenService, TokenService>();
+            services.AddScoped<ITeamService, TeamService>();
 
             services.AddHttpContextAccessor();
             services.UpgradePasswordSecurity().UseArgon2<IdentityUser>();
-            
+
+            //add swagger for API docs
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v0", new OpenApiInfo { Title = "api", Version = "v0" });
             });
+
+            //add MediatR for API & Application assemblies
+            services.AddMediatR(typeof(Startup).GetTypeInfo().Assembly);
+            services.AddMediatR(typeof(CreateTeamCommand).GetTypeInfo().Assembly);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -95,7 +106,7 @@ namespace Quest.API
             {
                 c.SwaggerEndpoint("/swagger/v0/swagger.json", "api v0");
             });
-            
+
             app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
         }
     }

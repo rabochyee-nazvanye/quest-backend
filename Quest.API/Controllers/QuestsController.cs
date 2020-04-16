@@ -1,12 +1,15 @@
 ﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Quest.API.Models.ViewModels.Quests;
+using Quest.Application.Quests.Commands;
+using Quest.Application.Quests.Queries;
 using Quest.DAL.Data;
 using Quest.Domain.Models;
 
@@ -19,32 +22,28 @@ namespace Quest.API.Controllers
     {
         private readonly Db _db;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly IMediator _mediator;
 
-        public QuestsController(Db context, UserManager<ApplicationUser> userManager)
+        public QuestsController(Db context, UserManager<ApplicationUser> userManager, IMediator mediator)
         {
             _db = context;
             _userManager = userManager;
+            _mediator = mediator;
         }
-        
+
         [HttpGet]
         [AllowAnonymous]
-        public IActionResult Get()
+        public async Task<IActionResult> Get()
         {
-            var data = _db.Quests.ToList();
+            var data = await _mediator.Send(new GetAllQuestsQuery());
             return Ok(data);
         }
-        
+
         [HttpGet("{id}")]
         [AllowAnonymous]
-        public IActionResult Get(int id)
+        public async Task<IActionResult> Get(int id)
         {
-            var quest = _db.Quests
-                .Where(x => x.Id == id)
-                .Include(x => x.Author)
-                .Include(x => x.AppUserQuests)
-                .ThenInclude(x=> x.User)
-                .Include(x => x.Teams)
-                .FirstOrDefault((x) => x.Id == id);
+            var quest = await _mediator.Send(new GetQuestByIdQuery(id));
 
             if (quest == null)
             {
@@ -52,33 +51,29 @@ namespace Quest.API.Controllers
             }
             return Json(new QuestInfoVM(quest));
         }
-        
+
         [Authorize]
         [HttpPost]
         public async Task<IActionResult> Post(CreateQuestVM model)
         {
             var userId = _userManager.GetUserId(User);
+            if (!ModelState.IsValid)
+                return BadRequest();
 
-            var author = await _db.Users.FirstOrDefaultAsync(x => x.UserName == userId);
-            if (ModelState.IsValid && author != null)
+            var response = await _mediator.Send(new CreateQuestCommand
             {
-                var quest = new QuestEntity
-                {
-                    Name = model.Name,
-                    Description = model.Description,
-                    ImageUrl = model.ImageUrl,
-                    StartDate = DateTime.Now + TimeSpan.FromDays(7),
-                    RegistrationDeadline = DateTime.Now + TimeSpan.FromDays(3),
-                    AuthorId = author.Id
-                };
+                AuthorId = userId,
+                Description = model.Description,
+                ImageUrl = model.ImageUrl,
+                Name = model.Name,
+                RegistrationDeadline = model.RegistrationDeadline,
+                StartDate = model.StartDate
+            });
 
-                await _db.Quests.AddAsync(quest);
-                await _db.SaveChangesAsync();
+            if (response.Result == null)
+                return BadRequest(response.Message);
 
-                return Created("/quests/" + quest.Id, quest.Id);
-            }
-
-            return BadRequest();
+            return Created("/quests/" + response.Result.Id, response.Result.Id);
         }
     }
 }

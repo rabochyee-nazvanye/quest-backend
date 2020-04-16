@@ -2,12 +2,15 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Quest.API.Models.ViewModels.Teams;
 using Quest.API.Services;
+using Quest.Application.Teams.Commands;
+using Quest.Application.Teams.Queries;
 using Quest.DAL.Data;
 using Quest.Domain.Models;
 
@@ -18,27 +21,22 @@ namespace Quest.API.Controllers
     [Route("[controller]")]
     public class TeamController : Controller
     {
-        private readonly Db _db;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly IMediator _mediator;
 
-        public TeamController(Db context, UserManager<ApplicationUser> userManager)
+        public TeamController(UserManager<ApplicationUser> userManager, IMediator mediator)
         {
-            _db = context;
             _userManager = userManager;
+            _mediator = mediator;
         }
 
 
         [HttpGet("{id}")]
         [AllowAnonymous]
-        public IActionResult GetTeamById(int id)
+        public async Task<IActionResult> GetTeamById(int id)
         {
-            var team = _db.Teams
-                .Where(x => x.Id == id)
-                .Include(x => x.TeamUsers)
-                .ThenInclude(x => x.User)
-                .Include(x => x.TeamUsers)
-                .FirstOrDefault((x) => x.Id == id);
-
+            var team = await _mediator.Send(new GetTeamInfoQuery(id));
+          
             if (team == null)
             {
                 return NotFound();
@@ -52,123 +50,51 @@ namespace Quest.API.Controllers
         [HttpPost("create")]
         public async Task<IActionResult> Post(CreateTeamInfoVM model)
         {
-            var userId = _userManager.GetUserId(User);
-
-            var capitan = await _db.Users.FirstOrDefaultAsync(x => x.UserName == userId);
-            if (!ModelState.IsValid || capitan == null)
+            if (!ModelState.IsValid)
             {
                 return BadRequest();
             }
 
-            var quest = _db.Quests.FirstOrDefault(x => x.Id == model.QuestId);
+            var userId = _userManager.GetUserId(User);
 
-            if (quest == null)
-            {
-                return BadRequest("Couldn't find quest with that ID");
-            }
+            var createTeamCommand = new CreateTeamCommand(model.Name, userId, model.QuestId);
 
-            var capitanTeams = quest.Teams.Where(x => x.TeamUsers.Any(y => y.UserId == capitan.Id));
-            if (capitanTeams.Any())
-            {
-                return BadRequest("This user is currently tied with one team");
-            }
+            var response = await _mediator.Send(createTeamCommand);
 
-            if (quest.RegistrationDeadline < DateTime.Now)
-            {
-                return BadRequest("You can't register to that event no more");
-            }
+            if (response.Result == null)
+                return BadRequest(response.Message);
 
-            if (_db.Teams.Any(x => x.Name == model.Name))
-            {
-                return BadRequest("The team with that name already exists");
-            }
-
-            var team = new Team()
-            {
-                Name = model.Name,
-                TeamUsers = new List<TeamUser>(),
-                //Todo: Remove Hardcoded values
-                InviteTokenSecret = TeamSecretService.GenerateTeamToken(6)
-            };
-
-            team.TeamUsers.Add(new TeamUser()
-            {
-                Team = team,
-                User = capitan,
-                UserId = capitan.Id,
-            });
-
-            if (quest.Teams == null)
-            {
-                quest.Teams = new List<Team>();
-            }
-
-            quest.Teams.Add(team);
-
-            await _db.Teams.AddAsync(team);
-            await _db.SaveChangesAsync();
-
-            return Created("/team/" + team.Id, team.Id);
+            return Created("/team/" + response.Result.Id, response.Result.Id);
         }
 
 
         [Authorize]
-        [HttpPost("add/{requestSecret}")]
-        public async Task<IActionResult> AddUserToTeam(string requestSecret)
+        [HttpPost("{teamId}/join/{requestSecret}")]
+        public async Task<IActionResult> AddUserToTeam(int teamId, string requestSecret)
         {
             var userId = _userManager.GetUserId(User);
 
-            var requestTeamParsed = requestSecret.Split('-');
-            int.TryParse(requestTeamParsed.First(), out var teamId);
-            var requestTeamSecret = requestTeamParsed.Last();
+            var command = new AddUserToTeamCommand(userId, requestSecret, teamId);
 
-            var user = await _db.Users.FirstOrDefaultAsync(x => x.UserName == userId);
-            if (user == null)
-            {
-                return BadRequest("Couldn't find quest with that ID");
-            }
+            var response = await _mediator.Send(command);
 
-            var team = await _db.Teams.FirstOrDefaultAsync(x => x.Id == teamId);
-            if (team == null)
-            {
-                return BadRequest("Couldn't find team with that ID");
-            }
+            if (response.Result)
+                return Ok(response.Message);
 
-            var quest = await _db.Quests.FirstOrDefaultAsync(x => x.Teams.Any(x => x.Id == teamId));
-            if (quest == null)
-            {
-                return BadRequest("The team is not linked to any quest");
-            }
-            
-            if (team.InviteTokenSecret != requestTeamSecret)
-            {
-                return BadRequest("Bad secret");
-            }
-
-            if (team.TeamUsers.Count(x => x.TeamId == teamId) + 1 > quest.MaxTeamSize)
-            {
-                return BadRequest("You couldn't add more people to the team!");
-            }
-            
-            team.TeamUsers.Add(new TeamUser()
-            {
-                User = user,
-                UserId = userId,
-                Team = team,
-                TeamId = teamId
-            });
-
-            await _db.SaveChangesAsync();
-
-            return Ok("User was successfully added");
+            return BadRequest(response.Message);
         }
         
         
         [Authorize]
-        [HttpDelete("kick/{requestSecret}")]
-        public async Task<IActionResult> KickUserFromTheTeam()
+        [HttpDelete("{teamId}/kick/{userId}")]
+        public async Task<IActionResult> KickUserFromTheTeam(int teamId, string userId)
         {
-            throw new NotImplementedException();
+            var response = await _mediator.Send(new RemoveUserFromTeamCommand(teamId, userId));
+
+            if (!response.Result)
+                return BadRequest(response.Message);
+
+            return Ok(response.Message);
         }
     }
 }
