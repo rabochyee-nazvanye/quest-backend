@@ -48,9 +48,6 @@ namespace Quest.API
                     .RequireAuthenticatedUser()
                     .Build();
                 o.Filters.Add(new AuthorizeFilter(policy));
-            }).AddJsonOptions(o =>
-            {
-                o.JsonSerializerOptions.Converters.Add(new DateTimeConverter());
             });
 
             // Get Connection string from configuration file
