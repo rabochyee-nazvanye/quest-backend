@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -36,7 +37,7 @@ namespace Quest.API.Controllers
         public async Task<IActionResult> GetTeamById(int id)
         {
             var team = await _mediator.Send(new GetTeamInfoQuery(id));
-          
+
             if (team == null)
             {
                 return NotFound();
@@ -62,31 +63,37 @@ namespace Quest.API.Controllers
             var response = await _mediator.Send(createTeamCommand);
 
             if (response.Result == null)
-                return BadRequest(response.Message);
+                return StatusCode(StatusCodes.Status403Forbidden, response.Message);
 
             return Created("/team/" + response.Result.Id, response.Result.Id);
         }
 
 
         [Authorize]
-        [HttpPost("{teamId}/join/{requestSecret}")]
-        public async Task<IActionResult> AddUserToTeam(int teamId, string requestSecret)
+        [HttpPost("{teamId}/members")]
+        public async Task<IActionResult> AddUserToTeam(int teamId, [FromBody] AddUserToTeamVM model)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest();
+            }
+
             var userId = _userManager.GetUserId(User);
 
-            var command = new AddUserToTeamCommand(userId, requestSecret, teamId);
+            var command = new AddUserToTeamCommand(userId, model.UserId, model.RequestSecret, teamId);
 
             var response = await _mediator.Send(command);
 
-            if (response.Result)
-                return Ok(response.Message);
+            if (!response.Result)
+                return StatusCode(StatusCodes.Status403Forbidden, response.Message);
 
-            return BadRequest(response.Message);
+            return Ok(response.Message);
+
         }
-        
-        
+
+
         [Authorize]
-        [HttpDelete("{teamId}/kick/{userToKickId}")]
+        [HttpDelete("{teamId}/members/{userToKickId}")]
         public async Task<IActionResult> KickUserFromTheTeam(int teamId, string userToKickId)
         {
             var userId = _userManager.GetUserId(User);
@@ -94,7 +101,7 @@ namespace Quest.API.Controllers
             var response = await _mediator.Send(new RemoveUserFromTeamCommand(teamId, userId, userToKickId));
 
             if (!response.Result)
-                return BadRequest(response.Message);
+                return StatusCode(StatusCodes.Status403Forbidden, response.Message);
 
             return Ok(response.Message);
         }
@@ -108,7 +115,24 @@ namespace Quest.API.Controllers
             var response = await _mediator.Send(new RemoveTeamCommand(userId, teamId));
 
             if (!response.Result)
-                return BadRequest(response.Message);
+                return StatusCode(StatusCodes.Status403Forbidden, response.Message);
+
+            return Ok(response.Message);
+        }
+
+
+        [Authorize]
+        [HttpPost("{teamId}/moderator/")]
+        public async Task<IActionResult> AssignModeratorToTeam(int teamId,
+            [FromBody]AssignModeratorToTeamVM model)
+        {
+            var userId = _userManager.GetUserId(User);
+
+            var response = await _mediator.Send(
+                new AssignModeratorToTeamCommand(teamId, userId, model.ModeratorId));
+
+            if (!response.Result)
+                return StatusCode(StatusCodes.Status403Forbidden, response.Message);
 
             return Ok(response.Message);
         }

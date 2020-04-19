@@ -24,13 +24,18 @@ namespace Quest.Application.Teams.Commands
 
         public async Task<BaseResponse<bool>> Handle(AddUserToTeamCommand request, CancellationToken cancellationToken)
         {
-            var user = await _context.Users.FirstOrDefaultAsync(x => x.Id == request.UserId, cancellationToken: cancellationToken);
+            if (request.UserId != request.UserToAddId)
+                return BaseResponse.Failure<bool>("Request user and new team user do not match.");
+
+            var user = await _context.Users.FirstOrDefaultAsync(x => x.Id == request.UserToAddId, cancellationToken: cancellationToken);
             if (user == null)
                 return BaseResponse.Failure<bool>("Couldn't find quest with that ID");
 
             var team = await _context.Teams
                 .Where(x => x.Id == request.TeamId)
                 .Include(x => x.Quest)
+                .ThenInclude(x => x.Teams)
+                .ThenInclude(x => x.Members)
                 .Include(x => x.Members)
                 .ThenInclude(x => x.User)
                 .FirstOrDefaultAsync(cancellationToken: cancellationToken);
@@ -46,7 +51,17 @@ namespace Quest.Application.Teams.Commands
             if (team.Members.Count >= team.Quest.MaxTeamSize)
                 return BaseResponse.Failure<bool>("You couldn't add more people to the team!");
 
-          
+            if (team.Members.Any(x => x.UserId == user.Id))
+                return BaseResponse.Failure<bool>("User is already in that team!");
+
+            var teamMemberToRemove =
+                team.Quest.Teams
+                    .Where(x => x.Id != team.Id && x.Members.Any(m => m.UserId == user.Id))
+                    .Select(x => x.Members.FirstOrDefault(m => m.UserId == user.Id))
+                    .ToList();
+
+            _context.TeamUsers.RemoveRange(teamMemberToRemove);
+
             team.Members.Add(new TeamUser
             {
                 User = user,
