@@ -38,7 +38,7 @@ namespace Quest.API.Controllers
         public async Task<IActionResult> Get()
         {
             var data = await _mediator.Send(new GetAllQuestsQuery());
-            return Json(data.Select(x => new QuestVM(x)));
+            return Json(data.Select(x => new QuestWithTeamsAndAuthorVM(x)));
         }
 
         [HttpGet("{id}")]
@@ -51,7 +51,7 @@ namespace Quest.API.Controllers
             {
                 return NotFound();
             }
-            return Json(new QuestVM(quest));
+            return Json(new QuestWithTeamsAndAuthorVM(quest));
         }
 
         [Authorize]

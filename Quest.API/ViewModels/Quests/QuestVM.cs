@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Quest.API.ViewModels.Teams;
-using Quest.API.ViewModels.Users;
+using System.Threading.Tasks;
 using Quest.Domain.Models;
 
 namespace Quest.API.ViewModels.Quests
@@ -19,10 +18,7 @@ namespace Quest.API.ViewModels.Quests
             StartDate = row.StartDate;
             EndDate = row.EndDate;
             Status = row.GetQuestStatus().ToString().ToLowerInvariant();
-            Author = new UserVM(row.Author);
-            Teams = row.Teams.Select(x => new TeamVM(x)).ToList();
         }
-        
         public int Id { get; set; }
         public string Name { get; set; }
         public string Description { get; set; }
@@ -32,7 +28,5 @@ namespace Quest.API.ViewModels.Quests
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
         public string Status { get; set; }
-        public UserVM Author { get; set; }
-        public List<TeamVM> Teams { get; set; }
     }
 }
