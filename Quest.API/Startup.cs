@@ -111,6 +111,17 @@ namespace Quest.API
                     .AllowAnyHeader());
             }
 
+            if (env.IsProduction())
+            {
+                var safeOrigins = Configuration.GetSection("CorsOrigins").Get<string[]>();
+                app.UseCors(options => options
+                    .WithOrigins(safeOrigins)
+                    .AllowAnyHeader()
+                    .AllowAnyMethod()
+                    .AllowCredentials()
+                    .SetIsOriginAllowedToAllowWildcardSubdomains());
+            }
+
             var supportedCultures = new[] { new CultureInfo("ru-RU") };
             app.UseRequestLocalization(new RequestLocalizationOptions
             {
