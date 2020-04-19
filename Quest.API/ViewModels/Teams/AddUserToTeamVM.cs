@@ -4,6 +4,6 @@ namespace Quest.API.ViewModels.Teams
 {
     public class AddUserToTeamVM
     {
-        [Required] public int TeamID;
+        [Required] public string RequestSecret;
     }
 }

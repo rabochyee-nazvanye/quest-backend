@@ -69,12 +69,12 @@ namespace Quest.API.Controllers
 
 
         [Authorize]
-        [HttpPost("{teamId}/join/{requestSecret}")]
-        public async Task<IActionResult> AddUserToTeam(int teamId, string requestSecret)
+        [HttpPost("{teamId}/members")]
+        public async Task<IActionResult> AddUserToTeam(int teamId, [FromBody] AddUserToTeamVM model)
         {
             var userId = _userManager.GetUserId(User);
 
-            var command = new AddUserToTeamCommand(userId, requestSecret, teamId);
+            var command = new AddUserToTeamCommand(userId, model.RequestSecret, teamId);
 
             var response = await _mediator.Send(command);
 
@@ -86,7 +86,7 @@ namespace Quest.API.Controllers
         
         
         [Authorize]
-        [HttpDelete("{teamId}/kick/{userToKickId}")]
+        [HttpDelete("{teamId}/members/{userToKickId}")]
         public async Task<IActionResult> KickUserFromTheTeam(int teamId, string userToKickId)
         {
             var userId = _userManager.GetUserId(User);
