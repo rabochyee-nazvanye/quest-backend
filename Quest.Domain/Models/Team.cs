@@ -38,5 +38,7 @@ namespace Quest.Domain.Models
         public ICollection<TeamUser> Members { get; set; }
         public ICollection<TaskAttemptTeam> TaskAttempts { get; set; }
         public ICollection<TeamHint> UsedHints { get; set; }
+
+        public ApplicationUser Moderator { get; set; }
     }
 }

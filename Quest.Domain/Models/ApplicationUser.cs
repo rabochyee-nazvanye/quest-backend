@@ -14,5 +14,7 @@ namespace Quest.Domain.Models
         public List<TeamUser> JoinedTeams { get; set; }
         
         public List<Team> OwnedTeams { get; set; }
+
+        public List<Team> ModeratedTeams { get; set; }
     }
 }
