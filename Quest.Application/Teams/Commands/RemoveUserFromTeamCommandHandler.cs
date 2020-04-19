@@ -28,6 +28,9 @@ namespace Quest.Application.Teams.Commands
                 .ThenInclude(x => x.User)
                 .FirstOrDefaultAsync(cancellationToken: cancellationToken);
 
+            if (team == null)
+                return BaseResponse.Failure<bool>("Team not found!");
+
             if (team.CaptainUserId != request.UserId && request.UserId != request.UserToKickId)
                 return BaseResponse.Failure<bool>("You need to be a captain to kick this user from team");
 
