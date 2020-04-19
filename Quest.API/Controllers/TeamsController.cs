@@ -8,6 +8,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Design;
+using Quest.API.Helpers;
 using Quest.API.Services;
 using Quest.API.ViewModels.Teams;
 using Quest.Application.Teams.Commands;
@@ -43,7 +45,7 @@ namespace Quest.API.Controllers
                 return NotFound();
             }
 
-            return Json(new TeamVM(team));
+            return Json(new TeamWithCaptainAndMembersVM(team));
         }
 
 
@@ -135,6 +137,25 @@ namespace Quest.API.Controllers
                 return StatusCode(StatusCodes.Status403Forbidden, response.Message);
 
             return Ok(response.Message);
+        }
+
+        [Authorize]
+        [HttpGet]
+        [ExactQueryParam("action", "requestSecret")]
+        public async Task<IActionResult> GetTeamBySecretCode([FromQuery]string action, [FromQuery]string requestSecret)
+        {
+            var userId = _userManager.GetUserId(User);
+            //todo add verification that user has privileges to do team lookup by invite code
+            if (action != "lookupByInviteCode" || string.IsNullOrEmpty(requestSecret))
+                return BadRequest();
+
+            var response = await _mediator.Send(
+                new GetTeamBySecretQuery(requestSecret));
+
+            if (response == null)
+                return NotFound("Could not find team with provided secret code.");
+
+            return Ok(new TeamWithQuestVM(response));
         }
     }
 }
