@@ -102,7 +102,21 @@ namespace Quest.API
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
-                app.UseCors(builder => builder.AllowAnyOrigin());
+                app.UseCors(builder => builder
+                    .AllowAnyOrigin()
+                    .AllowAnyMethod()
+                    .AllowAnyHeader());
+            }
+
+            if (env.IsProduction())
+            {
+                var safeOrigins = Configuration.GetSection("CorsOrigins").Get<string[]>();
+                app.UseCors(options => options
+                    .WithOrigins(safeOrigins)
+                    .AllowAnyHeader()
+                    .AllowAnyMethod()
+                    .AllowCredentials()
+                    .SetIsOriginAllowedToAllowWildcardSubdomains());
             }
 
             var supportedCultures = new[] { new CultureInfo("ru-RU") };
