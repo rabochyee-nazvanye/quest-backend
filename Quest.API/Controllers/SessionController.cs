@@ -74,7 +74,7 @@ namespace Quest.API.Controllers
 
             if (user == null)
             {
-                return BadRequest("User with that username not found.");
+                return NotFound("User with that username not found.");
             }
 
             return Json(new UserVM(user));

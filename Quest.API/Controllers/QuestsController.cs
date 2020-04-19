@@ -4,6 +4,7 @@ using System.Runtime.Serialization.Json;
 using System.Threading.Tasks;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -74,7 +75,7 @@ namespace Quest.API.Controllers
             });
 
             if (response.Result == null)
-                return BadRequest(response.Message);
+                return StatusCode(StatusCodes.Status403Forbidden, response.Message);
 
             return Created("/quests/" + response.Result.Id, response.Result.Id);
         }

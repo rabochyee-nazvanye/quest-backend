@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using MediatR;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
@@ -51,7 +52,7 @@ namespace Quest.API.Controllers
 
             if (user == null)
             {
-                return BadRequest("User with that username not found.");
+                return NotFound("User with that username not found.");
             }
 
             return Json(new UserVM(user));
@@ -63,7 +64,7 @@ namespace Quest.API.Controllers
         {
             var userId = _userManager.GetUserId(User);
             if (userId != null)
-                return BadRequest("Cannot register while logged in!");
+                return StatusCode(StatusCodes.Status403Forbidden, "Cannot register while logged in!");
 
             if (!ModelState.IsValid)
                 return BadRequest();
@@ -71,7 +72,7 @@ namespace Quest.API.Controllers
             var response = await _mediator.Send(new CreateUserCommand(model.Username, model.Password));
             if (response.Result == null)
             {
-                return BadRequest(response.Message);
+                return StatusCode(StatusCodes.Status403Forbidden, response.Message);
             }
 
             var user = response.Result;
