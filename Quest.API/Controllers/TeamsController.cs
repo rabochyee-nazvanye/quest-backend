@@ -67,7 +67,11 @@ namespace Quest.API.Controllers
             if (response.Result == null)
                 return StatusCode(StatusCodes.Status403Forbidden, response.Message);
 
-            return Created("/team/" + response.Result.Id, response.Result.Id);
+            return Created("/team/" + response.Result.Id, new
+            {
+                teamId = response.Result.Id,
+                inviteLink = "/invites/" + response.Result.InviteTokenSecret
+            });
         }
 
 
