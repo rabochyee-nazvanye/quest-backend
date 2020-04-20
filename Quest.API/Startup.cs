@@ -6,11 +6,14 @@ using System.Reflection;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Hellang.Middleware.ProblemDetails;
 using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.AspNetCore.Mvc.Authorization;
@@ -23,24 +26,32 @@ using Quest.API.Services;
 using Quest.DAL.Data;
 using Quest.Domain.Models;
 using Microsoft.OpenApi.Models;
+using Newtonsoft.Json;
 using Quest.API.Helpers;
 using Quest.Application.Teams.Commands;
 using Quest.Domain.Services;
+using IHostingEnvironment = Microsoft.AspNetCore.Hosting.IHostingEnvironment;
 
 namespace Quest.API
 {
     public class Startup
     {
-        public Startup(IConfiguration configuration)
+        public Startup(IConfiguration configuration, IWebHostEnvironment environment)
         {
             Configuration = configuration;
+            Environment = environment;
         }
 
         public IConfiguration Configuration { get; }
+        public IWebHostEnvironment Environment { get; }
 
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddCors();
+            services.AddProblemDetails(setup => {
+
+                setup.IncludeExceptionDetails = (_,__) => Environment.IsDevelopment();
+            });
 
             services.AddControllers(o =>
             {
@@ -101,7 +112,7 @@ namespace Quest.API
         {
             if (env.IsDevelopment())
             {
-                app.UseDeveloperExceptionPage();
+                //app.UseDeveloperExceptionPage();
                 app.UseCors(builder => builder
                     .AllowAnyOrigin()
                     .AllowAnyMethod()
@@ -126,6 +137,8 @@ namespace Quest.API
                 SupportedCultures = supportedCultures,
                 SupportedUICultures = supportedCultures
             });
+            
+            app.UseProblemDetails();
 
             app.UseRouting();
             app.UseSwagger();

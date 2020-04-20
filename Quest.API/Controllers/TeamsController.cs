@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -10,6 +11,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Quest.API.Helpers;
+using Quest.API.Helpers.Errors;
 using Quest.API.Services;
 using Quest.API.ViewModels.Teams;
 using Quest.Application.Teams.Commands;
@@ -65,7 +67,7 @@ namespace Quest.API.Controllers
             var response = await _mediator.Send(createTeamCommand);
 
             if (response.Result == null)
-                return StatusCode(StatusCodes.Status403Forbidden, response.Message);
+                return ApiError.ProblemDetails(HttpStatusCode.Forbidden, response.Message);
 
             return Created("/team/" + response.Result.Id, new
             {
@@ -91,10 +93,9 @@ namespace Quest.API.Controllers
             var response = await _mediator.Send(command);
 
             if (!response.Result)
-                return StatusCode(StatusCodes.Status403Forbidden, response.Message);
+                return ApiError.ProblemDetails(HttpStatusCode.Forbidden, response.Message);
 
             return Ok(response.Message);
-
         }
 
 
@@ -107,7 +108,7 @@ namespace Quest.API.Controllers
             var response = await _mediator.Send(new RemoveUserFromTeamCommand(teamId, userId, userToKickId));
 
             if (!response.Result)
-                return StatusCode(StatusCodes.Status403Forbidden, response.Message);
+                return ApiError.ProblemDetails(HttpStatusCode.Forbidden, response.Message);
 
             return Ok(response.Message);
         }
@@ -121,7 +122,7 @@ namespace Quest.API.Controllers
             var response = await _mediator.Send(new RemoveTeamCommand(userId, teamId));
 
             if (!response.Result)
-                return StatusCode(StatusCodes.Status403Forbidden, response.Message);
+                return ApiError.ProblemDetails(HttpStatusCode.Forbidden, response.Message);
 
             return Ok(response.Message);
         }
@@ -138,7 +139,7 @@ namespace Quest.API.Controllers
                 new AssignModeratorToTeamCommand(teamId, userId, model.ModeratorId));
 
             if (!response.Result)
-                return StatusCode(StatusCodes.Status403Forbidden, response.Message);
+                return ApiError.ProblemDetails(HttpStatusCode.Forbidden, response.Message);
 
             return Ok(response.Message);
         }
