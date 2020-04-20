@@ -16,5 +16,6 @@ namespace Quest.Domain.Models
         public List<Team> OwnedTeams { get; set; }
 
         public List<Team> ModeratedTeams { get; set; }
+        public int TelegramId { get; set; }
     }
 }
