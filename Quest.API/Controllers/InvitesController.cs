@@ -1,12 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Quest.API.Helpers.Errors;
 using Quest.Application.Teams.Commands;
 using Quest.Application.Teams.Queries;
 using Quest.DAL.Data;
@@ -46,13 +49,13 @@ namespace Quest.API.Controllers
             var team = await _mediator.Send(new GetTeamBySecretQuery(inviteCode));
 
             if (team == null)
-                return StatusCode(StatusCodes.Status403Forbidden, "Invalid code");
+                return ApiError.ProblemDetails(HttpStatusCode.Forbidden, "Invalid code");
 
             var result = await _mediator.Send(
                 new AddUserToTeamCommand(userId, userId, inviteCode, team.Id));
 
             if (!result.Result)
-                return StatusCode(StatusCodes.Status403Forbidden, result.Message);
+                return ApiError.ProblemDetails(HttpStatusCode.Forbidden, result.Message);
 
             return Ok(result.Message);
         }

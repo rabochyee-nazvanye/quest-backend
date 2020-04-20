@@ -1,6 +1,7 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
 using System.IdentityModel.Tokens.Jwt;
+using System.Net;
 using System.Net.Mime;
 using System.Security.Claims;
 using System.Text;
@@ -16,6 +17,7 @@ using Microsoft.Extensions.Primitives;
 using Microsoft.IdentityModel.Tokens;
 using NpgsqlTypes;
 using Quest.API.Helpers;
+using Quest.API.Helpers.Errors;
 using Quest.API.Services;
 using Quest.API.ViewModels.Users;
 using Quest.Application.Users.Commands;
@@ -64,16 +66,14 @@ namespace Quest.API.Controllers
         {
             var userId = _userManager.GetUserId(User);
             if (userId != null)
-                return StatusCode(StatusCodes.Status403Forbidden, "Cannot register while logged in!");
-
+                return ApiError.ProblemDetails(HttpStatusCode.Forbidden, "Cannot register while logged in!");
+            
             if (!ModelState.IsValid)
                 return BadRequest();
 
             var response = await _mediator.Send(new CreateUserCommand(model.Username, model.Password));
             if (response.Result == null)
-            {
-                return StatusCode(StatusCodes.Status403Forbidden, response.Message);
-            }
+                return ApiError.ProblemDetails(HttpStatusCode.Forbidden, response.Message);
 
             var user = response.Result;
             var userPrincipal = await _signInManager.CreateUserPrincipalAsync(user);

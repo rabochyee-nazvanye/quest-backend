@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Net;
 using System.Runtime.Serialization.Json;
 using System.Threading.Tasks;
 using MediatR;
@@ -9,6 +10,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
+using Quest.API.Helpers.Errors;
 using Quest.API.ViewModels.Quests;
 using Quest.Application.Quests.Commands;
 using Quest.Application.Quests.Queries;
@@ -38,7 +40,7 @@ namespace Quest.API.Controllers
         public async Task<IActionResult> Get()
         {
             var data = await _mediator.Send(new GetAllQuestsQuery());
-            return Json(data.Select(x => new QuestWithTeamsAndAuthorVM(x)));
+            return Ok(data.Select(x => new QuestWithTeamsAndAuthorVM(x)));
         }
 
         [HttpGet("{id}")]
@@ -75,7 +77,7 @@ namespace Quest.API.Controllers
             });
 
             if (response.Result == null)
-                return StatusCode(StatusCodes.Status403Forbidden, response.Message);
+                return ApiError.ProblemDetails(HttpStatusCode.Forbidden, response.Message);
 
             return Created("/quests/" + response.Result.Id, response.Result.Id);
         }
