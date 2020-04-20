@@ -22,6 +22,8 @@ namespace Quest.Application.Teams.Commands
         {
             var team = await _context.Teams.FirstOrDefaultAsync(x => x.Id == request.TeamId,
                 cancellationToken: cancellationToken);
+            if (team == null)
+                return BaseResponse.Failure<bool>("Team not found.");
 
             var user = await _context.Users.FindAsync(request.UserId);
 
