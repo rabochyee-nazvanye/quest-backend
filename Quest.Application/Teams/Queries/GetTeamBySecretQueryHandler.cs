@@ -27,6 +27,7 @@ namespace Quest.Application.Teams.Queries
                 .ThenInclude(x => x.User)
                 .Include(x => x.Captain)
                 .Include(x => x.Quest)
+                .Include(x => x.Moderator)
                 .FirstOrDefaultAsync(cancellationToken: cancellationToken);
         }
     }

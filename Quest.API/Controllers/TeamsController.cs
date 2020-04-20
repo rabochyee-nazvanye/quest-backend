@@ -14,6 +14,7 @@ using Quest.API.Helpers;
 using Quest.API.Helpers.Errors;
 using Quest.API.Services;
 using Quest.API.ViewModels.Teams;
+using Quest.API.ViewModels.Users;
 using Quest.Application.Teams.Commands;
 using Quest.Application.Teams.Queries;
 using Quest.DAL.Data;
@@ -134,6 +135,7 @@ namespace Quest.API.Controllers
             [FromBody]AssignModeratorToTeamVM model)
         {
             var userId = _userManager.GetUserId(User);
+            //todo add verification that user has privileges to assign moderator to quest
 
             var response = await _mediator.Send(
                 new AssignModeratorToTeamCommand(teamId, userId, model.ModeratorId));
@@ -158,9 +160,25 @@ namespace Quest.API.Controllers
                 new GetTeamBySecretQuery(requestSecret));
 
             if (response == null)
-                return NotFound("Could not find team with provided secret code.");
+                return NotFound();
 
-            return Ok(new TeamWithQuestVM(response));
+            return Ok(new TeamWithQuestAndModeratorVM(response));
+        }
+        
+        [Authorize]
+        [HttpGet("{id}/moderator")]
+        public async Task<IActionResult> GetTeamModerator(int id)
+        {
+            var userId = _userManager.GetUserId(User);
+            //todo add verification that user has privileges to do team lookup by invite code
+
+            var response = await _mediator.Send(
+                new GetTeamInfoQuery(id));
+
+            if (response?.Moderator == null)
+                return NotFound();
+
+            return Ok(new ModeratorVM(response.Moderator));
         }
     }
 }
