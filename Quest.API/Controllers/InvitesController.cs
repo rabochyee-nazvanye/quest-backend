@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Quest.API.Helpers.Errors;
+using Quest.API.ViewModels.Teams;
 using Quest.Application.Teams.Commands;
 using Quest.Application.Teams.Queries;
 using Quest.DAL.Data;
@@ -56,8 +57,8 @@ namespace Quest.API.Controllers
 
             if (!result.Result)
                 return ApiError.ProblemDetails(HttpStatusCode.Forbidden, result.Message);
-
-            return Ok(result.Message);
+            
+            return Ok(new TeamVM(team));
         }
     }
 }
