@@ -32,12 +32,16 @@ namespace Quest.Domain.Models
         public QuestStatus GetQuestStatus()
         {
             var timeNow = DateTime.Now;
-            if (StartDate > timeNow && timeNow > EndDate)
-                return QuestStatus.InProgress;
-
+            
             if (EndDate < timeNow)
                 return QuestStatus.Finished;
-
+            
+            if (StartDate < timeNow && timeNow < EndDate)
+                return QuestStatus.InProgress;
+            
+            if (RegistrationDeadline < timeNow)
+                return QuestStatus.RegistrationOver;
+            
             return QuestStatus.Scheduled;
         }
 
@@ -45,8 +49,10 @@ namespace Quest.Domain.Models
         public enum QuestStatus
         {
             Scheduled = 0,
-            InProgress = 1,
-            Finished = 2
+            RegistrationOver = 1,
+            InProgress = 2,
+            Finished = 3
+            
         }
     }
 }
