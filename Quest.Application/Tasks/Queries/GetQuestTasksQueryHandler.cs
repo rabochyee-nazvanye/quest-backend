@@ -44,6 +44,7 @@ namespace Quest.Application.Tasks.Queries
             var tasks  = await _context.Tasks
                 .Where(x => x.QuestId == request.QuestId)
                 .Include(x => x.TaskAttempts)
+                .Include(x => x.Hints)
                 .ToListAsync(cancellationToken);
 
             var teamTasks = tasks.Select(x =>
