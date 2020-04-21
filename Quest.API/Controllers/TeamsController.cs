@@ -180,5 +180,25 @@ namespace Quest.API.Controllers
 
             return Ok(new ModeratorVM(response.Moderator));
         }
+        
+         
+        [Authorize]
+        [HttpGet("{id}/inviteCode")]
+        public async Task<IActionResult> GetTeamInviteCode(int id)
+        {
+            //quick implementation, redesign to separate request later
+            var userId = _userManager.GetUserId(User);
+
+            var response = await _mediator.Send(
+                new GetTeamInfoQuery(id));
+
+            if (response == null)
+                return NotFound();
+
+            if (response.Members.All(x => x.UserId != userId))
+                return ApiError.ProblemDetails(HttpStatusCode.Forbidden, "You are not a member of this team");
+            
+            return Ok(response.InviteTokenSecret);
+        }
     }
 }

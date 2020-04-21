@@ -36,7 +36,7 @@ namespace Quest.Domain.Models
         public bool ValidateSecret(string secret) => InviteTokenSecret == secret;
 
         public ICollection<TeamUser> Members { get; set; }
-        public ICollection<TaskAttemptTeam> TaskAttempts { get; set; }
+        public ICollection<TaskAttempt> TaskAttempts { get; set; }
         public ICollection<TeamHint> UsedHints { get; set; }
 
         public ApplicationUser Moderator { get; set; }

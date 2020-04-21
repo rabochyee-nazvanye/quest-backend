@@ -4,7 +4,7 @@ using Quest.Domain.Models;
 
 namespace Quest.Application.Teams.Queries
 {
-    public class GetTeamByUserAndQuestQuery : IRequest<List<Team>>
+    public class GetTeamByUserAndQuestQuery : IRequest<BaseResponse<List<Team>>>
     {
         public GetTeamByUserAndQuestQuery(int questId, List<string> memberIds)
         {

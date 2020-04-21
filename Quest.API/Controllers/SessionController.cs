@@ -1,6 +1,7 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
 using System.IdentityModel.Tokens.Jwt;
+using System.Net;
 using System.Net.Mime;
 using System.Security.Claims;
 using System.Text;
@@ -13,6 +14,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Primitives;
 using Microsoft.IdentityModel.Tokens;
 using Quest.API.Helpers;
+using Quest.API.Helpers.Errors;
 using Quest.API.Services;
 using Quest.API.ViewModels.Sessions;
 using Quest.API.ViewModels.Users;
@@ -61,7 +63,7 @@ namespace Quest.API.Controllers
                 });
             }
 
-            return Unauthorized("Wrong username or password.");
+            return ApiError.ProblemDetails(HttpStatusCode.Forbidden, "Wrong username or password.");
         }
 
         [HttpGet]
@@ -74,10 +76,11 @@ namespace Quest.API.Controllers
 
             if (user == null)
             {
-                return NotFound("User with that username not found.");
+                return ApiError.ProblemDetails(HttpStatusCode.InternalServerError, 
+                    "Failed to load user details");
             }
 
-            return Json(new UserVM(user));
+            return Ok(new UserVM(user));
         }
     }
 }

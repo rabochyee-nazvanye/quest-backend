@@ -9,7 +9,7 @@ using Quest.Domain.Models;
 
 namespace Quest.Application.Teams.Queries
 {
-    public class GetTeamByUserAndQuestQueryHandler : IRequestHandler<GetTeamByUserAndQuestQuery, List<Team>>
+    public class GetTeamByUserAndQuestQueryHandler : IRequestHandler<GetTeamByUserAndQuestQuery, BaseResponse<List<Team>>>
     {
         private readonly Db _context;
 
@@ -18,7 +18,7 @@ namespace Quest.Application.Teams.Queries
             _context = context;
         }
 
-        public async Task<List<Team>> Handle(GetTeamByUserAndQuestQuery request, CancellationToken cancellationToken)
+        public async Task<BaseResponse<List<Team>>> Handle(GetTeamByUserAndQuestQuery request, CancellationToken cancellationToken)
         {
             if (!request.MemberIds.Any())
                 return null;
@@ -32,9 +32,14 @@ namespace Quest.Application.Teams.Queries
                 .ThenInclude(x => x.User)
                 .FirstOrDefaultAsync(cancellationToken);
 
-            return quest?.Teams
+            if (quest == null)
+                return BaseResponse.Failure<List<Team>>("Quest not found");
+            
+            var teams = quest.Teams
                 .Where(x => x.Members.Any(x => request.MemberIds.Contains(x.UserId)))
                 .ToList();
+
+            return BaseResponse.Success(teams, "Success");
         }
     }
 }

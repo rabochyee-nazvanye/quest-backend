@@ -3,6 +3,7 @@
     public enum TaskAttemptStatus
     {
         Error = 0,
-        Accepted = 1,
+        OnReview = 1,
+        Accepted = 2
     }
 }

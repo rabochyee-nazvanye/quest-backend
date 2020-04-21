@@ -5,7 +5,7 @@ using Quest.Domain.Enums;
 
 namespace Quest.Domain.Models
 {
-    public class Task
+    public class TaskEntity
     {
         [Key]
         public int Id { get; set; }
@@ -18,7 +18,7 @@ namespace Quest.Domain.Models
         public string Question { get; set; }
         public string CorrectAnswer { get; set; }
         public string Group { get; set; }
-        
-        public ICollection<TaskAttemptTeam> TaskAttempts { get; set; }
+        public List<Hint> Hints { get; set; }
+        public List<TaskAttempt> TaskAttempts { get; set; }
     }
 }

@@ -11,7 +11,7 @@ namespace Quest.Domain.Models
 
         public int TaskId { get; set; }
         [ForeignKey("TaskId")]
-        public Task Task { get; set; }
+        public TaskEntity TaskEntity { get; set; }
         
         public int TeamId { get; set; }
         [ForeignKey("TeamId")]
