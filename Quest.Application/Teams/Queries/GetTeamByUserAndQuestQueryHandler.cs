@@ -29,6 +29,7 @@ namespace Quest.Application.Teams.Queries
                 .ThenInclude(x => x.Captain)
                 .Include(x => x.Teams)
                 .ThenInclude(x => x.Members)
+                .ThenInclude(x => x.User)
                 .FirstOrDefaultAsync(cancellationToken);
 
             return quest?.Teams
