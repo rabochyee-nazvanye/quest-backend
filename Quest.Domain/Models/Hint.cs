@@ -14,6 +14,7 @@ namespace Quest.Domain.Models
         
         public string Name { get; set; }
         public string Secret { get; set; }
+        public int Sorting { get; set; }
         
         public ICollection<TeamHint> UsedTeamHints { get; set; } 
     }
