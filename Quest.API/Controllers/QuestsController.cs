@@ -17,6 +17,7 @@ using Quest.API.ViewModels.Tasks;
 using Quest.API.ViewModels.Teams;
 using Quest.Application.Quests.Commands;
 using Quest.Application.Quests.Queries;
+using Quest.Application.Tasks.Commands;
 using Quest.Application.Tasks.Queries;
 using Quest.Application.Teams.Queries;
 using Quest.DAL.Data;
@@ -126,6 +127,33 @@ namespace Quest.API.Controllers
                 return ApiError.ProblemDetails(HttpStatusCode.Forbidden, response.Message);
 
             return Ok(response.Result.Select(x => new TaskVM(x)));
+        }
+        
+        [Authorize]
+        [HttpPost("{id}/tasks")]
+        public async Task<IActionResult> CreateTask(int id, [FromBody]CreateTaskVM model)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest();
+            
+            //todo add verification for user priveleges
+            var userId = _userManager.GetUserId(User);
+            
+            var response = await _mediator.Send(new CreateTaskCommand()
+            {
+                CorrectAnswer =  model.CorrectAnswer,
+                Group = model.Group,
+                Name = model.Name,
+                QuestId = id,
+                Question = model.Question,
+                Reward =  model.Reward,
+                VerificationIsManual = model.VerificationIsManual
+            });
+
+            if (response.Result == null)
+                return ApiError.ProblemDetails(HttpStatusCode.Forbidden, response.Message);
+
+            return Created($"/quests/{id}/tasks/{response.Result.Id}",response.Result.Id);
         }
     }
 }
