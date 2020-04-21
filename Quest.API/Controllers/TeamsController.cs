@@ -96,7 +96,9 @@ namespace Quest.API.Controllers
             if (!response.Result)
                 return ApiError.ProblemDetails(HttpStatusCode.Forbidden, response.Message);
 
-            return Ok(response.Message);
+            var team = await _mediator.Send(new GetTeamInfoQuery(teamId));
+            
+            return Ok(new TeamVM(team));
         }
 
 
