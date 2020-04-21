@@ -23,7 +23,7 @@ namespace Quest.Domain.Models
         [ForeignKey("AuthorId")]
         public ApplicationUser Author { get; set; }
 
-        public List<Task> Tasks { get; set; }
+        public List<TaskEntity> Tasks { get; set; }
         
         public int MaxTeamSize { get; set; }
 

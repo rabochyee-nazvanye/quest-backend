@@ -13,9 +13,11 @@ using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Quest.API.Helpers;
 using Quest.API.Helpers.Errors;
 using Quest.API.ViewModels.Quests;
+using Quest.API.ViewModels.Tasks;
 using Quest.API.ViewModels.Teams;
 using Quest.Application.Quests.Commands;
 using Quest.Application.Quests.Queries;
+using Quest.Application.Tasks.Queries;
 using Quest.Application.Teams.Queries;
 using Quest.DAL.Data;
 using Quest.Domain.Models;
@@ -106,10 +108,24 @@ namespace Quest.API.Controllers
             
             var response = await _mediator.Send(new GetTeamByUserAndQuestQuery(id, memberIds));
 
-            if (response == null || !response.Any())
-                return NotFound();
+            if (response.Result == null)
+                return ApiError.ProblemDetails(HttpStatusCode.Forbidden, response.Message);
 
-            return Ok(response.Select(x => new TeamWithCaptainAndMembersVM(x)));
+            return Ok(response.Result.Select(x => new TeamWithCaptainAndMembersVM(x)));
+        }
+        
+        [Authorize]
+        [HttpGet("{id}/tasks")]
+        public async Task<IActionResult> GetQuestTasks(int id)
+        {
+            var userId = _userManager.GetUserId(User);
+            
+            var response = await _mediator.Send(new GetQuestTasksQuery(userId, id));
+
+            if (response.Result == null)
+                return ApiError.ProblemDetails(HttpStatusCode.Forbidden, response.Message);
+
+            return Ok(response.Result.Select(x => new TaskVM(x)));
         }
     }
 }
