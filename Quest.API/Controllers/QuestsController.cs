@@ -10,10 +10,13 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
+using Quest.API.Helpers;
 using Quest.API.Helpers.Errors;
 using Quest.API.ViewModels.Quests;
+using Quest.API.ViewModels.Teams;
 using Quest.Application.Quests.Commands;
 using Quest.Application.Quests.Queries;
+using Quest.Application.Teams.Queries;
 using Quest.DAL.Data;
 using Quest.Domain.Models;
 
@@ -80,6 +83,33 @@ namespace Quest.API.Controllers
                 return ApiError.ProblemDetails(HttpStatusCode.Forbidden, response.Message);
 
             return Created("/quests/" + response.Result.Id, response.Result.Id);
+        }
+        
+        [Authorize]
+        [HttpGet("{id}/teams")]
+        [ExactQueryParam("members")]
+        public async Task<IActionResult> GetQuestTeamByUserId(int id, [FromQuery]string members)
+        {
+            var userId = _userManager.GetUserId(User);
+            
+            if (string.IsNullOrEmpty(members))
+                return BadRequest();
+
+            var memberIds = members.Split("|")
+                .Where(x => !string.IsNullOrWhiteSpace(x))
+                .Select(x => x != "currentUser" ? x : userId)
+                .Distinct()
+                .ToList();
+
+            if (!memberIds.Any())
+                return BadRequest();
+            
+            var response = await _mediator.Send(new GetTeamByUserAndQuestQuery(id, memberIds));
+
+            if (response == null || !response.Any())
+                return NotFound();
+
+            return Ok(response.Select(x => new TeamWithCaptainAndMembersVM(x)));
         }
     }
 }
