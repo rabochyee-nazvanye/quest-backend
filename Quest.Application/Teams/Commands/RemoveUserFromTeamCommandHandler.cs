@@ -33,8 +33,8 @@ namespace Quest.Application.Teams.Commands
 
             if (team.CaptainUserId != request.UserId && request.UserId != request.UserToKickId)
                 return BaseResponse.Failure<bool>("You need to be a captain to kick this user from team");
-
-            if (request.UserToKickId == team.CaptainUserId)
+            
+            if (request.UserToKickId == team.CaptainUserId && team.Members.Count > 1)
             {
                 return BaseResponse.Failure<bool>("Captain can't leave the team.");
             }
@@ -44,7 +44,14 @@ namespace Quest.Application.Teams.Commands
             if (userToKick == null)
                 return BaseResponse.Failure<bool>("This user does not belong to this team.");
 
-            team.Members.Remove(userToKick);
+            if (request.UserToKickId == team.CaptainUserId)
+            {
+                _context.Teams.Remove(team);
+            }
+            else
+            {
+                team.Members.Remove(userToKick);
+            }
 
             await _context.SaveChangesAsync(cancellationToken);
             return BaseResponse.Success(true, "Successfully removed user from the team.");

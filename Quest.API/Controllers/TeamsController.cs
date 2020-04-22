@@ -17,6 +17,7 @@ using Quest.API.ViewModels.Teams;
 using Quest.API.ViewModels.Users;
 using Quest.Application.Teams.Commands;
 using Quest.Application.Teams.Queries;
+using Quest.Application.Users.Queries;
 using Quest.DAL.Data;
 using Quest.Domain.Models;
 
@@ -108,6 +109,9 @@ namespace Quest.API.Controllers
         {
             var userId = _userManager.GetUserId(User);
 
+            if (userToKickId == "currentUser")
+                userToKickId = userId;
+                
             var response = await _mediator.Send(new RemoveUserFromTeamCommand(teamId, userId, userToKickId));
 
             if (!response.Result)
@@ -138,6 +142,10 @@ namespace Quest.API.Controllers
         {
             var userId = _userManager.GetUserId(User);
             //todo add verification that user has privileges to assign moderator to quest
+            var user = await _mediator.Send(new GetUserByIdQuery(userId));
+            if (user.UserName != "admin_user")
+                return ApiError.ProblemDetails(HttpStatusCode.Forbidden, 
+                    "You don't have an access to task creation");
 
             var response = await _mediator.Send(
                 new AssignModeratorToTeamCommand(teamId, userId, model.ModeratorId));
@@ -154,10 +162,9 @@ namespace Quest.API.Controllers
         public async Task<IActionResult> GetTeamBySecretCode([FromQuery]string action, [FromQuery]string requestSecret)
         {
             var userId = _userManager.GetUserId(User);
-            //todo add verification that user has privileges to do team lookup by invite code
             if (action != "lookupByInviteCode" || string.IsNullOrEmpty(requestSecret))
                 return BadRequest();
-
+            
             var response = await _mediator.Send(
                 new GetTeamBySecretQuery(requestSecret));
 
@@ -173,6 +180,10 @@ namespace Quest.API.Controllers
         {
             var userId = _userManager.GetUserId(User);
             //todo add verification that user has privileges to do team lookup by invite code
+            var user = await _mediator.Send(new GetUserByIdQuery(userId));
+            if (user.UserName != "admin_user")
+                return ApiError.ProblemDetails(HttpStatusCode.Forbidden, 
+                    "You don't have an access to task creation");
 
             var response = await _mediator.Send(
                 new GetTeamInfoQuery(id));

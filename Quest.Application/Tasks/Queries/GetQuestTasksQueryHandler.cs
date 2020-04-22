@@ -21,11 +21,14 @@ namespace Quest.Application.Tasks.Queries
 
         public async Task<BaseResponse<List<TaskEntity>>> Handle(GetQuestTasksQuery request, CancellationToken cancellationToken)
         {
-            var questExists = await _context.Quests.AnyAsync(x => x.Id == request.QuestId,
+            var quest = await _context.Quests.FirstOrDefaultAsync(x => x.Id == request.QuestId,
                 cancellationToken: cancellationToken);
 
-            if (!questExists)
+            if (quest == null)
                 return BaseResponse.Failure<List<TaskEntity>>("Could not find quest with provided id.");
+            
+            if (quest.GetQuestStatus() != QuestEntity.QuestStatus.InProgress)
+                return BaseResponse.Failure<List<TaskEntity>>("Quest is not in active state yet.");
             
             var userExists = await _context.Users.AnyAsync(x => x.Id == request.UserId,
                 cancellationToken: cancellationToken);
@@ -40,7 +43,7 @@ namespace Quest.Application.Tasks.Queries
             
             if (team == null)
                 return BaseResponse.Failure<List<TaskEntity>>("User do not belong to any team.");
-
+            
             var tasks  = await _context.Tasks
                 .Where(x => x.QuestId == request.QuestId)
                 .Include(x => x.TaskAttempts)

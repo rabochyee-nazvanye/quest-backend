@@ -50,7 +50,7 @@ namespace Quest.Application.Teams.Commands
 
             if (team.Members.Count >= team.Quest.MaxTeamSize)
                 return BaseResponse.Failure<bool>("You couldn't add more people to the team!");
-
+    
             if (team.Members.Any(x => x.UserId == user.Id))
                 return BaseResponse.Failure<bool>("User is already in that team!");
 
@@ -59,6 +59,20 @@ namespace Quest.Application.Teams.Commands
                     .Where(x => x.Id != team.Id && x.Members.Any(m => m.UserId == user.Id))
                     .Select(x => x.Members.FirstOrDefault(m => m.UserId == user.Id))
                     .ToList();
+            
+            if (teamMemberToRemove.Any(x => x.Team.CaptainUserId == user.Id && x.Team.Members.Count > 1))
+                return BaseResponse.Failure<bool>("Captain can't leave the team if it is not empty.");
+
+            var teamsToRemove = teamMemberToRemove
+                .Where(x => x.Team.CaptainUserId == user.Id && x.Team.Members.Count <= 1)
+                .Select(x => x.Team)
+                .ToList();
+
+            if (teamsToRemove.Any())
+            {
+                _context.Teams.RemoveRange(teamsToRemove);
+            }
+
 
             _context.TeamUsers.RemoveRange(teamMemberToRemove);
 
