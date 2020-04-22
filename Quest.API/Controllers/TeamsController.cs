@@ -109,6 +109,9 @@ namespace Quest.API.Controllers
         {
             var userId = _userManager.GetUserId(User);
 
+            if (userToKickId == "currentUser")
+                userToKickId = userId;
+                
             var response = await _mediator.Send(new RemoveUserFromTeamCommand(teamId, userId, userToKickId));
 
             if (!response.Result)
