@@ -6,4 +6,4 @@
 
 Платформа легко масштабируема и расширяема, поддерживает разные типы заданий и квестов.
 
-**Бэкенд:** **ASP .NET Core MVC**, EF Core, PostgreSQL
+**Бэкенд:** **ASP.NET Core WebAPI**, EF Core, PostgreSQL
