@@ -13,6 +13,8 @@ namespace Quest.Application.Users.Commands
 {
     public class CreateUserCommandHandler : IRequestHandler<CreateUserCommand, BaseResponse<ApplicationUser>>
     {
+        private readonly Func<string> _generateAvatar =  () => $"https://avatars.dicebear.com/v2/human/{Guid.NewGuid().ToString()}.svg";
+
         private readonly UserManager<ApplicationUser> _userManager;
 
         public CreateUserCommandHandler(UserManager<ApplicationUser> userManager)
@@ -25,7 +27,7 @@ namespace Quest.Application.Users.Commands
         {
             var user = new ApplicationUser
             {
-                AvatarUrl = request.AvatarUrl,
+                AvatarUrl = _generateAvatar(),
                 UserName = request.Username
             };
 
