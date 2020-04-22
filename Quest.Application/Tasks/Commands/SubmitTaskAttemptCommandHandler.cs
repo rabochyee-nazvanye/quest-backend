@@ -81,7 +81,11 @@ namespace Quest.Application.Tasks.Commands
 
             if (task.QuestId != team.QuestId)
                 return BaseResponse.Failure<TaskEntity>("Task quest does not match team quest");
+            
+            if (team.Quest.GetQuestStatus() != QuestEntity.QuestStatus.InProgress)
+                return BaseResponse.Failure<TaskEntity>("Quest is not in active state yet.");
 
+            
             await ProcessAttempt(task, request.AttemptText, team.Id, cancellationToken);
             
             // quick and dirty task re-fetch

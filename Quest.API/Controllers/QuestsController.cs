@@ -20,6 +20,7 @@ using Quest.Application.Quests.Queries;
 using Quest.Application.Tasks.Commands;
 using Quest.Application.Tasks.Queries;
 using Quest.Application.Teams.Queries;
+using Quest.Application.Users.Queries;
 using Quest.DAL.Data;
 using Quest.Domain.Models;
 
@@ -136,8 +137,12 @@ namespace Quest.API.Controllers
             if (!ModelState.IsValid)
                 return BadRequest();
             
-            //todo add verification for user priveleges
+            //todo add proper verification for user priveleges later
             var userId = _userManager.GetUserId(User);
+            var user = await _mediator.Send(new GetUserByIdQuery(userId));
+            if (user.UserName != "admin_user")
+                return ApiError.ProblemDetails(HttpStatusCode.Forbidden, 
+                    "You don't have an access to task creation");
             
             var response = await _mediator.Send(new CreateTaskCommand()
             {
