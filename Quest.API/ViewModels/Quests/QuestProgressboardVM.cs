@@ -20,27 +20,42 @@ namespace Quest.API.ViewModels.Quests
                 {
                     teamInfo.Add(taskScore.Key.Id.ToString(), taskScore.Value.ToString());
                 }
+                teamInfo.Add("sum", teamProgress.Scores.Select(x => x.Value).Sum().ToString());
                 Data.Add(teamInfo);
             }
            
-            //populate first column data
-            var firstHeading = new Dictionary<string, string>();
-            firstHeading.Add("title", "Имя команды");
-            firstHeading.Add("dataIndex", "teamname");
-            firstHeading.Add("key", "teamname");
-            firstHeading.Add("fixed", "left");
-
+            //populate team name column data
+            var teamNameHeading = new
+            {
+                title = "Имя команды",
+                dataIndex = "teamname",
+                key = "teamname",
+                @fixed = "left",
+                width = 200
+            };
+            //populate team score sum column data
+            var teamScoreHeading = new
+            {
+                title = "Сумма",
+                dataIndex = "sum",
+                key = "sum",
+                width = 50
+            };
+            
             var taskGroupHeadings = new List<object>();
             //populate other columns data
             foreach (var tasksOfGroup in dto.TasksByGroupName)
             {
-                var childTasks = new List<Dictionary<string, string>>();
+                var childTasks = new List<object>();
                 foreach (var task in tasksOfGroup)
                 {
-                    var taskInfo = new Dictionary<string, string>();
-                    taskInfo.Add("title", task.Name);
-                    taskInfo.Add("dataIndex", task.Id.ToString());
-                    taskInfo.Add("key", task.Id.ToString());
+                    var taskInfo = new
+                    {
+                        title = task.Name,
+                        dataIndex = task.Id.ToString(),
+                        key = task.Id.ToString(),
+                        width = 50
+                    };
                     childTasks.Add(taskInfo);
                 }
 
@@ -51,7 +66,7 @@ namespace Quest.API.ViewModels.Quests
                 });
             }
 
-            Columns = new List<object> {firstHeading};
+            Columns = new List<object> {teamNameHeading, teamScoreHeading};
             Columns.AddRange(taskGroupHeadings);
         }
         
