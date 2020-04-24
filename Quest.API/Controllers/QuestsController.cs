@@ -161,5 +161,17 @@ namespace Quest.API.Controllers
 
             return Created($"/quests/{id}/tasks/{response.Result.Id}",response.Result.Id);
         }
+        
+        [Authorize]
+        [HttpGet("{id}/scoreboard")]
+        public async Task<IActionResult> GetQuestScoreboard(int id)
+        {
+            var response = await _mediator.Send(new GetQuestScoreboardQuery(id));
+
+            if (response.Result == null)
+                return ApiError.ProblemDetails(HttpStatusCode.Forbidden, response.Message);
+
+            return Ok(new QuestScoreboardVM(response.Result));
+        }
     }
 }
