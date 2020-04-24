@@ -1,4 +1,8 @@
+using System.Collections.Generic;
 using System.Linq;
+using Microsoft.EntityFrameworkCore.Design;
+using Quest.API.ViewModels.Hints;
+using Quest.Application.DTOs;
 using Quest.Domain.Enums;
 using Quest.Domain.Models;
 
@@ -6,24 +10,29 @@ namespace Quest.API.ViewModels.Tasks
 {
     public class TaskVM
     {
-        public TaskVM(TaskEntity row)
+        public TaskVM(TeamTaskStatusDTO dto)
         {
-            Id = row.Id;
-            Name = row.Name;
-            Reward = row.Reward;
-            ManualVerificationEnabled = (row.VerificationType == VerificationType.Manual).ToString();
-            Question = row.Question;
-            Group = row.Group;
-            HintsCount = row.Hints.Count;
-            Status = row
-                .TaskAttempts.Any(x => x.Status == TaskAttemptStatus.Accepted)
+            Id = dto.Task.Id;
+            Name = dto.Task.Name;
+            Reward = dto.Task.Reward;
+            ManualVerificationEnabled = (dto.Task.VerificationType == VerificationType.Manual).ToString();
+            Question = dto.Task.Question;
+            Group = dto.Task.Group;
+            HintsCount = dto.Task.Hints.Count;
+            Status = dto
+                .Task.TaskAttempts.Any(x => x.Status == TaskAttemptStatus.Accepted)
                 ? TaskAttemptStatus.Accepted.ToString().ToLowerInvariant()
-                : row.TaskAttempts.Any(x => x.Status == TaskAttemptStatus.OnReview)
+                : dto.Task.TaskAttempts.Any(x => x.Status == TaskAttemptStatus.OnReview)
                     ? TaskAttemptStatus.OnReview.ToString().ToLowerInvariant()
-                    : row.TaskAttempts.Any(x => x.Status == TaskAttemptStatus.Error)
+                    : dto.Task.TaskAttempts.Any(x => x.Status == TaskAttemptStatus.Error)
                         ? TaskAttemptStatus.Error.ToString().ToLowerInvariant()
                         : "notsubmitted";
-            AdminComment = row.TaskAttempts.OrderByDescending(x => x.SubmitTime).FirstOrDefault()?.AdminComment;
+
+            var lastAttempt = dto.Task.TaskAttempts.OrderByDescending(x => x.SubmitTime).FirstOrDefault();
+            AdminComment = lastAttempt?.AdminComment;
+            LastSubmittedAnswer = lastAttempt?.Text;
+            
+            UsedHintNumbers = dto.UsedHints.Select(x => new HintVM(x)).ToList();
         }
         
         public int Id { get; set; }
@@ -33,6 +42,8 @@ namespace Quest.API.ViewModels.Tasks
         public string Question { get; set; }
         public string Group { get; set; }
         public int HintsCount { get; set; }
+        public List<HintVM> UsedHintNumbers { get; set; }
+        public string LastSubmittedAnswer { get; set; }
         public string Status { get; set; }
         public string AdminComment { get; set; }
     }

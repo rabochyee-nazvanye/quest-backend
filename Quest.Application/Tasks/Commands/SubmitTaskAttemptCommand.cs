@@ -1,9 +1,10 @@
 using MediatR;
+using Quest.Application.DTOs;
 using Quest.Domain.Models;
 
 namespace Quest.Application.Tasks.Commands
 {
-    public class SubmitTaskAttemptCommand : IRequest<BaseResponse<TaskEntity>>
+    public class SubmitTaskAttemptCommand : IRequest<BaseResponse<TeamTaskStatusDTO>>
     {
         public string AttemptText { get; set; }
         public string UserId { get; set; }

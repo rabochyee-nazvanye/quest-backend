@@ -61,7 +61,7 @@ namespace Quest.API.Controllers
 
             if (response.Result == null)
                 return ApiError.ProblemDetails(HttpStatusCode.Forbidden, response.Message);
-
+            
             return Ok(new TaskVM(response.Result));
         }
         
