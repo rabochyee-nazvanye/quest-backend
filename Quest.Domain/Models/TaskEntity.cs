@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Linq;
 using Quest.Domain.Enums;
 
 namespace Quest.Domain.Models
@@ -20,5 +21,8 @@ namespace Quest.Domain.Models
         public string Group { get; set; }
         public List<Hint> Hints { get; set; }
         public List<TaskAttempt> TaskAttempts { get; set; }
+        
+        //quick and dirty multiple answers support implementation
+        public List<string> CorrectAnswers => CorrectAnswer.Split(";").ToList();
     }
 }
