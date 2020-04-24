@@ -28,9 +28,14 @@ namespace Quest.Domain.Models
         public int MaxTeamSize { get; set; }
 
         public List<Team> Teams { get; set; }
+        
+        public bool ResultsAvailable { get; set; }
 
         public QuestStatus GetQuestStatus()
         {
+            if (ResultsAvailable)
+                return QuestStatus.ResultsAvailable;
+            
             var timeNow = DateTime.Now;
             
             if (EndDate < timeNow)
@@ -51,8 +56,8 @@ namespace Quest.Domain.Models
             Scheduled = 0,
             RegistrationOver = 1,
             InProgress = 2,
-            Finished = 3
-            
+            Finished = 3,
+            ResultsAvailable = 4
         }
     }
 }
