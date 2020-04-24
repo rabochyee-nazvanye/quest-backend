@@ -162,7 +162,7 @@ namespace Quest.API.Controllers
             return Created($"/quests/{id}/tasks/{response.Result.Id}",response.Result.Id);
         }
         
-        [Authorize]
+        [AllowAnonymous]
         [HttpGet("{id}/scoreboard")]
         public async Task<IActionResult> GetQuestScoreboard(int id)
         {
@@ -172,6 +172,20 @@ namespace Quest.API.Controllers
                 return ApiError.ProblemDetails(HttpStatusCode.Forbidden, response.Message);
 
             return Ok(new QuestScoreboardVM(response.Result));
+        }
+        
+        [Authorize]
+        [HttpGet("{id}/progressboard")] 
+        public async Task<IActionResult> GetQuestModeratorBoard(int id)
+        {
+            var userId = _userManager.GetUserId(User);
+
+            var response = await _mediator.Send(new GetQuestProgressboardQuery(userId, id));
+
+            if (response.Result == null)
+                return ApiError.ProblemDetails(HttpStatusCode.Forbidden, response.Message);
+
+            return Ok(new QuestProgressboardVM(response.Result));
         }
     }
 }

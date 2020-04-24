@@ -30,4 +30,8 @@
     <ProjectReference Include="..\Quest.DAL\Quest.DAL.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="ViewModels\Quests\Progressboard" />
+  </ItemGroup>
+
 </Project>
