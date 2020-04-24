@@ -12,6 +12,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Quest.API.Helpers;
 using Quest.API.Helpers.Errors;
+using Quest.API.ViewModels.Hints;
 using Quest.API.ViewModels.Quests;
 using Quest.API.ViewModels.TaskAttempts;
 using Quest.API.ViewModels.Tasks;
@@ -55,7 +56,6 @@ namespace Quest.API.Controllers
             {
                 AttemptText = model.AttemptText,
                 TaskId = id,
-                TeamId = model.TeamId,
                 UserId = userId
             });
 
@@ -66,18 +66,22 @@ namespace Quest.API.Controllers
         }
         
         [Authorize]
-        [HttpGet("{id}/hints/{hintNumber}")]
-        public async Task<IActionResult> GetQuestHint(int id, int hintNumber)
+        [HttpPost("{id}/hintrequests/{hintNumber}")]
+        public async Task<IActionResult> SubmitHintRequest(int id, int hintNumber)
         {
             var userId = _userManager.GetUserId(User);
+
+            var response = await _mediator.Send(new SubmitHintRequestCommand
+            {
+                UserId = userId,
+                TaskId = id,
+                HintNumber = hintNumber
+            });
             
-            //todo
-            throw new NotImplementedException();
-            //
-            // if (response.Result == null)
-            //     return ApiError.ProblemDetails(HttpStatusCode.Forbidden, response.Message);
-            //
-            // return Ok(response.Result.Select(x => new TaskVM(x)));
+            if (response.Result == null)
+                return ApiError.ProblemDetails(HttpStatusCode.Forbidden, response.Message);
+            
+            return Ok(new HintVM(response.Result));
         }
     }
 }
