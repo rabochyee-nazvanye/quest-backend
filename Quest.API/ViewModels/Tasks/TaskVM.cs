@@ -23,6 +23,7 @@ namespace Quest.API.ViewModels.Tasks
                     : row.TaskAttempts.Any(x => x.Status == TaskAttemptStatus.Error)
                         ? TaskAttemptStatus.Error.ToString().ToLowerInvariant()
                         : "notsubmitted";
+            AdminComment = row.TaskAttempts.OrderByDescending(x => x.SubmitTime).FirstOrDefault()?.AdminComment;
         }
         
         public int Id { get; set; }
@@ -33,5 +34,6 @@ namespace Quest.API.ViewModels.Tasks
         public string Group { get; set; }
         public int HintsCount { get; set; }
         public string Status { get; set; }
+        public string AdminComment { get; set; }
     }
 }

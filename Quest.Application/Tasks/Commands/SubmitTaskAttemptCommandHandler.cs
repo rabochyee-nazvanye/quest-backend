@@ -30,7 +30,8 @@ namespace Quest.Application.Tasks.Commands
                 TeamId = teamId,
                 Text = Normalize(attemptText),
                 UsedHintsCount = usedHintsCount,
-                Status = TaskAttemptStatus.OnReview
+                Status = TaskAttemptStatus.OnReview,
+                SubmitTime = DateTime.Now.ToUniversalTime()
             };
 
             if (task.VerificationType == VerificationType.Manual)

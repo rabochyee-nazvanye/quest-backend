@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Quest.Domain.Enums;
 
@@ -24,5 +25,6 @@ namespace Quest.Domain.Models
         public TaskAttemptStatus Status { get; set; }
         
         public string AdminComment { get; set; }
+        public DateTime SubmitTime { get; set; }
     }
 }
