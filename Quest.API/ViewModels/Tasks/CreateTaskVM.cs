@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
 namespace Quest.API.ViewModels.Tasks
@@ -10,5 +11,6 @@ namespace Quest.API.ViewModels.Tasks
         [Required] public string Question { get; set; }
         [Required] public string CorrectAnswer { get; set; }
         [Required] public string Group { get; set; }
+        [Required] public List<string> Hints { get; set; }
     }
 }

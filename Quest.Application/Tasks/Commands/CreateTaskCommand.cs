@@ -16,5 +16,6 @@ namespace Quest.Application.Tasks.Commands
         public string CorrectAnswer { get; set; }
         public string Group { get; set; }
         public int QuestId { get; set; }
+        public List<string> Hints { get; set; }
     }
 }
