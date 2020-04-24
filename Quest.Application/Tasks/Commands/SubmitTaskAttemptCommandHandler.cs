@@ -20,7 +20,7 @@ namespace Quest.Application.Tasks.Commands
         }
 
         private async Task ProcessAttempt(TaskEntity task, string attemptText,
-            int teamId, CancellationToken cancellationToken)
+            int teamId, int usedHintsCount, CancellationToken cancellationToken)
         {
             static string Normalize(string x) => x.Trim().ToLowerInvariant();
             
@@ -29,6 +29,7 @@ namespace Quest.Application.Tasks.Commands
                 TaskEntity = task,
                 TeamId = teamId,
                 Text = Normalize(attemptText),
+                UsedHintsCount = usedHintsCount,
                 Status = TaskAttemptStatus.OnReview
             };
 
@@ -60,33 +61,33 @@ namespace Quest.Application.Tasks.Commands
 
             if (!userExists)
                 return BaseResponse.Failure<TaskEntity>("Internal: user not found");
-
-            var team = await _context.Teams.Where(x => x.Id == request.TeamId)
-                .Include(x => x.Members)
-                .FirstOrDefaultAsync(cancellationToken);
-
-            if (team == null)
-                return BaseResponse.Failure<TaskEntity>("Team was not found");
-
-            if (team.Members.All(x => x.UserId != request.UserId))
-                return BaseResponse.Failure<TaskEntity>("User do not belong to specified team");
-
+            
             var task = await _context.Tasks.Where(x => x.Id == request.TaskId)
                 .Include(x => x.TaskAttempts)
                 .Include(x => x.Quest)
+                    .ThenInclude(x => x.Teams)
+                        .ThenInclude(x => x.Members)
+                .Include(x => x.Quest)
+                    .ThenInclude(x => x.Teams)
+                        .ThenInclude(x => x.UsedHints)
+                            .ThenInclude(x => x.Hint)
                 .FirstOrDefaultAsync(cancellationToken);
 
             if (task == null)
                 return BaseResponse.Failure<TaskEntity>("Task was not found");
 
-            if (task.QuestId != team.QuestId)
-                return BaseResponse.Failure<TaskEntity>("Task quest does not match team quest");
+            var team = task.Quest.Teams
+                .FirstOrDefault(x => x.Members.Any(m => m.UserId == request.UserId));
             
+            if (team == null)
+                return BaseResponse.Failure<TaskEntity>("Team was not found");
+
             if (team.Quest.GetQuestStatus() != QuestEntity.QuestStatus.InProgress)
                 return BaseResponse.Failure<TaskEntity>("Quest is not in active state yet.");
 
+            var taskUsedHints = team.UsedHints.Count(x => x.Hint.TaskId == task.Id);
             
-            await ProcessAttempt(task, request.AttemptText, team.Id, cancellationToken);
+            await ProcessAttempt(task, request.AttemptText, team.Id, taskUsedHints, cancellationToken);
             
             // quick and dirty task re-fetch
             var taskUpdated = await _context.Tasks.Where(x => x.Id == request.TaskId)
