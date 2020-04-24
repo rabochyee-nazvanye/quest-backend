@@ -19,6 +19,7 @@ namespace Quest.Domain.Models
 
         public string Text { get; set; }
         public string PhotoUrl { get; set; }
+        public int UsedHintsCount { get; set; }
         
         public TaskAttemptStatus Status { get; set; }
         
