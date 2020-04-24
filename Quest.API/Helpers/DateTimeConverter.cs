@@ -19,7 +19,8 @@ namespace Quest.API.Helpers
 
         public override void Write(Utf8JsonWriter writer, DateTime value, JsonSerializerOptions options)
         {
-            writer.WriteStringValue(value.ToUniversalTime().ToString("dd.MM.yyyy HH:mm", CultureInfo.InvariantCulture));
+            writer.WriteStringValue(value.ToUniversalTime()
+                .ToString("yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fff'Z'", CultureInfo.InvariantCulture));
         }
     }
 }

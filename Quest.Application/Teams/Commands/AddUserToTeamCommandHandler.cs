@@ -54,16 +54,26 @@ namespace Quest.Application.Teams.Commands
             if (team.Members.Any(x => x.UserId == user.Id))
                 return BaseResponse.Failure<bool>("User is already in that team!");
 
-            var teamMemberToRemove =
+            var teamConnections =
                 team.Quest.Teams
                     .Where(x => x.Id != team.Id && x.Members.Any(m => m.UserId == user.Id))
                     .Select(x => x.Members.FirstOrDefault(m => m.UserId == user.Id))
                     .ToList();
-            
-            if (teamMemberToRemove.Any(x => x.Team.CaptainUserId == user.Id && x.Team.Members.Count > 1))
-                return BaseResponse.Failure<bool>("Captain can't leave the team if it is not empty.");
 
-            var teamsToRemove = teamMemberToRemove
+            var connectionsToTransfer =
+                teamConnections
+                    .Where(x => x.Team.CaptainUserId == user.Id && x.Team.Members.Count > 1)
+                    .ToList();
+            
+            if (connectionsToTransfer.Any())
+            {
+                foreach (var connection in connectionsToTransfer)
+                {
+                    connection.Team.CaptainUserId = connection.Team.Members.First(x => x.UserId != user.Id).UserId;
+                }
+            }
+
+            var teamsToRemove = teamConnections
                 .Where(x => x.Team.CaptainUserId == user.Id && x.Team.Members.Count <= 1)
                 .Select(x => x.Team)
                 .ToList();
@@ -74,7 +84,7 @@ namespace Quest.Application.Teams.Commands
             }
 
 
-            _context.TeamUsers.RemoveRange(teamMemberToRemove);
+            _context.TeamUsers.RemoveRange(teamConnections);
 
             team.Members.Add(new TeamUser
             {

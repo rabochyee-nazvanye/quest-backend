@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Quest.DAL.Data;
+using Quest.DAL.Migrations;
 
 namespace Quest.Application.Teams.Commands
 {
@@ -34,11 +35,6 @@ namespace Quest.Application.Teams.Commands
             if (team.CaptainUserId != request.UserId && request.UserId != request.UserToKickId)
                 return BaseResponse.Failure<bool>("You need to be a captain to kick this user from team");
             
-            if (request.UserToKickId == team.CaptainUserId && team.Members.Count > 1)
-            {
-                return BaseResponse.Failure<bool>("Captain can't leave the team.");
-            }
-
             var userToKick = team.Members.FirstOrDefault(x => x.UserId == request.UserToKickId);
 
             if (userToKick == null)
@@ -46,7 +42,15 @@ namespace Quest.Application.Teams.Commands
 
             if (request.UserToKickId == team.CaptainUserId)
             {
-                _context.Teams.Remove(team);
+                if (team.Members.Count <= 1)
+                {
+                    _context.Teams.Remove(team);
+                }
+                else
+                {
+                    team.CaptainUserId = team.Members.First(x => x.UserId != request.UserToKickId).UserId;
+                    team.Members.Remove(userToKick);
+                }
             }
             else
             {
