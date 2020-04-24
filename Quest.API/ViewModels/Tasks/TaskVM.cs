@@ -15,7 +15,7 @@ namespace Quest.API.ViewModels.Tasks
             Id = dto.Task.Id;
             Name = dto.Task.Name;
             Reward = dto.Task.Reward;
-            ManualVerificationEnabled = (dto.Task.VerificationType == VerificationType.Manual).ToString();
+            ManualVerificationEnabled = dto.Task.VerificationType == VerificationType.Manual;
             Question = dto.Task.Question;
             Group = dto.Task.Group;
             HintsCount = dto.Task.Hints.Count;
@@ -38,7 +38,7 @@ namespace Quest.API.ViewModels.Tasks
         public int Id { get; set; }
         public string Name { get; set; }
         public int Reward { get; set; }
-        public string ManualVerificationEnabled { get; set; }
+        public bool ManualVerificationEnabled { get; set; }
         public string Question { get; set; }
         public string Group { get; set; }
         public int HintsCount { get; set; }
