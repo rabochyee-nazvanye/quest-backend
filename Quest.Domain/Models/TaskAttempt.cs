@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Quest.Domain.Enums;
 
@@ -19,9 +20,11 @@ namespace Quest.Domain.Models
 
         public string Text { get; set; }
         public string PhotoUrl { get; set; }
+        public int UsedHintsCount { get; set; }
         
         public TaskAttemptStatus Status { get; set; }
         
         public string AdminComment { get; set; }
+        public DateTime SubmitTime { get; set; }
     }
 }

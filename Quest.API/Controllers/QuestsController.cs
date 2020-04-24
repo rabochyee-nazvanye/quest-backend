@@ -152,7 +152,8 @@ namespace Quest.API.Controllers
                 QuestId = id,
                 Question = model.Question,
                 Reward =  model.Reward,
-                VerificationIsManual = model.VerificationIsManual
+                VerificationIsManual = model.VerificationIsManual,
+                Hints = model.Hints
             });
 
             if (response.Result == null)

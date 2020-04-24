@@ -4,13 +4,14 @@ using System.Threading;
 using System.Threading.Tasks;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Quest.Application.DTOs;
 using Quest.DAL.Data;
 using Quest.Domain.Enums;
 using Quest.Domain.Models;
 
 namespace Quest.Application.Tasks.Commands
 {
-    public class SubmitTaskAttemptCommandHandler : IRequestHandler<SubmitTaskAttemptCommand, BaseResponse<TaskEntity>>
+    public class SubmitTaskAttemptCommandHandler : IRequestHandler<SubmitTaskAttemptCommand, BaseResponse<TeamTaskStatusDTO>>
     {
         private readonly Db _context;
 
@@ -20,7 +21,7 @@ namespace Quest.Application.Tasks.Commands
         }
 
         private async Task ProcessAttempt(TaskEntity task, string attemptText,
-            int teamId, CancellationToken cancellationToken)
+            int teamId, int usedHintsCount, CancellationToken cancellationToken)
         {
             static string Normalize(string x) => x.Trim().ToLowerInvariant();
             
@@ -29,10 +30,12 @@ namespace Quest.Application.Tasks.Commands
                 TaskEntity = task,
                 TeamId = teamId,
                 Text = Normalize(attemptText),
-                Status = TaskAttemptStatus.OnReview
+                UsedHintsCount = usedHintsCount,
+                Status = TaskAttemptStatus.OnReview,
+                SubmitTime = DateTime.Now.ToUniversalTime()
             };
 
-            if (task.VerificationType == VerificationType.Manual)
+            if (task.VerificationType != VerificationType.Manual)
             {
                 // do auto verification
                 var normalizedAnswer = Normalize(task.CorrectAnswer);
@@ -53,48 +56,52 @@ namespace Quest.Application.Tasks.Commands
         }
         
         
-        public async Task<BaseResponse<TaskEntity>> Handle(SubmitTaskAttemptCommand request, CancellationToken cancellationToken)
+        public async Task<BaseResponse<TeamTaskStatusDTO>> Handle(SubmitTaskAttemptCommand request, CancellationToken cancellationToken)
         {
             var userExists = await _context.Users.AnyAsync(x => x.Id == request.UserId,
                 cancellationToken: cancellationToken);
 
             if (!userExists)
-                return BaseResponse.Failure<TaskEntity>("Internal: user not found");
-
-            var team = await _context.Teams.Where(x => x.Id == request.TeamId)
-                .Include(x => x.Members)
-                .FirstOrDefaultAsync(cancellationToken);
-
-            if (team == null)
-                return BaseResponse.Failure<TaskEntity>("Team was not found");
-
-            if (team.Members.All(x => x.UserId != request.UserId))
-                return BaseResponse.Failure<TaskEntity>("User do not belong to specified team");
-
+                return BaseResponse.Failure<TeamTaskStatusDTO>("Internal: user not found");
+            
             var task = await _context.Tasks.Where(x => x.Id == request.TaskId)
                 .Include(x => x.TaskAttempts)
                 .Include(x => x.Quest)
+                    .ThenInclude(x => x.Teams)
+                        .ThenInclude(x => x.Members)
+                .Include(x => x.Quest)
+                    .ThenInclude(x => x.Teams)
+                        .ThenInclude(x => x.UsedHints)
+                            .ThenInclude(x => x.Hint)
                 .FirstOrDefaultAsync(cancellationToken);
 
             if (task == null)
-                return BaseResponse.Failure<TaskEntity>("Task was not found");
+                return BaseResponse.Failure<TeamTaskStatusDTO>("Task was not found");
 
-            if (task.QuestId != team.QuestId)
-                return BaseResponse.Failure<TaskEntity>("Task quest does not match team quest");
+            var team = task.Quest.Teams
+                .FirstOrDefault(x => x.Members.Any(m => m.UserId == request.UserId));
             
+            if (team == null)
+                return BaseResponse.Failure<TeamTaskStatusDTO>("Team was not found");
+
             if (team.Quest.GetQuestStatus() != QuestEntity.QuestStatus.InProgress)
-                return BaseResponse.Failure<TaskEntity>("Quest is not in active state yet.");
+                return BaseResponse.Failure<TeamTaskStatusDTO>("Quest is not in active state yet.");
 
+            var usedHints = team.UsedHints
+                .Where(x => x.Hint.TaskId == task.Id)
+                .Select(x => x.Hint)
+                .ToList();
             
-            await ProcessAttempt(task, request.AttemptText, team.Id, cancellationToken);
+            await ProcessAttempt(task, request.AttemptText, team.Id, usedHints.Count, cancellationToken);
             
             // quick and dirty task re-fetch
-            var taskUpdated = await _context.Tasks.Where(x => x.Id == request.TaskId)
+            var updatedTask = await _context.Tasks.Where(x => x.Id == request.TaskId)
                 .Include(x => x.TaskAttempts)
                 .Include(x => x.Hints)
                 .FirstOrDefaultAsync(cancellationToken);
 
-            return BaseResponse.Success(taskUpdated, "Success");
+            
+            return BaseResponse.Success(new TeamTaskStatusDTO(updatedTask, usedHints), "Success");
         }
     }
 }

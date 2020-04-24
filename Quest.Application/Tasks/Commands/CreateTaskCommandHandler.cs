@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Threading;
@@ -34,8 +35,24 @@ namespace Quest.Application.Tasks.Commands
                 QuestId = request.QuestId,
                 Question = request.Question,
                 Reward = request.Reward,
-                VerificationType = request.VerificationIsManual ? VerificationType.Manual : VerificationType.Automatic
+                VerificationType = request.VerificationIsManual ? VerificationType.Manual : VerificationType.Automatic,
+                Hints = new List<Hint>()
             };
+
+            if (request.Hints != null && request.Hints.Any())
+            {
+                for (var idx = 0; idx < request.Hints.Count; idx++)
+                {
+                    var hintText = request.Hints[idx];
+                    task.Hints.Add(
+                        new Hint
+                        {
+                            Secret = hintText,
+                            Sorting = idx,
+                            TaskId = task.Id
+                        });
+                }
+            }
 
             await _context.Tasks.AddAsync(task, cancellationToken);
             await _context.SaveChangesAsync(cancellationToken);
