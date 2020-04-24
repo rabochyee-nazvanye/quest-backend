@@ -4,6 +4,7 @@
     {
         Error = 0,
         OnReview = 1,
-        Accepted = 2
+        Accepted = 2,
+        NotSubmitted = 3
     }
 }

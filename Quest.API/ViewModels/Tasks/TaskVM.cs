@@ -19,16 +19,25 @@ namespace Quest.API.ViewModels.Tasks
             Question = dto.Task.Question;
             Group = dto.Task.Group;
             HintsCount = dto.Task.Hints.Count;
-            Status = dto
+            
+            var taskStatus =  dto
                 .Task.TaskAttempts.Any(x => x.Status == TaskAttemptStatus.Accepted)
-                ? TaskAttemptStatus.Accepted.ToString().ToLowerInvariant()
+                ? TaskAttemptStatus.Accepted
                 : dto.Task.TaskAttempts.Any(x => x.Status == TaskAttemptStatus.OnReview)
-                    ? TaskAttemptStatus.OnReview.ToString().ToLowerInvariant()
+                    ? TaskAttemptStatus.OnReview
                     : dto.Task.TaskAttempts.Any(x => x.Status == TaskAttemptStatus.Error)
-                        ? TaskAttemptStatus.Error.ToString().ToLowerInvariant()
-                        : "notsubmitted";
+                        ? TaskAttemptStatus.Error
+                        : TaskAttemptStatus.NotSubmitted;
 
-            var lastAttempt = dto.Task.TaskAttempts.OrderByDescending(x => x.SubmitTime).FirstOrDefault();
+            Status = taskStatus.ToString().ToLowerInvariant();
+
+            var lastAttempt = taskStatus == TaskAttemptStatus.Accepted
+                ? dto.Task.TaskAttempts
+                    .Where(x => x.Status == TaskAttemptStatus.Accepted)
+                    .OrderByDescending(x => x.SubmitTime)
+                    .First()
+                : dto.Task.TaskAttempts.OrderByDescending(x => x.SubmitTime).FirstOrDefault();
+
             AdminComment = lastAttempt?.AdminComment;
             LastSubmittedAnswer = lastAttempt?.Text;
             

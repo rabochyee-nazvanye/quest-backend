@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -24,7 +25,6 @@ namespace Quest.Application.Tasks.Commands
             int teamId, int usedHintsCount, CancellationToken cancellationToken)
         {
             static string Normalize(string x) => x.Trim().ToLowerInvariant();
-            
             var taskAttempt = new TaskAttempt
             {
                 TaskEntity = task,
@@ -35,12 +35,10 @@ namespace Quest.Application.Tasks.Commands
                 SubmitTime = DateTime.Now.ToUniversalTime()
             };
 
-            if (task.VerificationType != VerificationType.Manual)
+            if (task.VerificationType == VerificationType.Automatic)
             {
                 // do auto verification
-                var normalizedAnswer = Normalize(task.CorrectAnswer);
-
-                if (attemptText == normalizedAnswer)
+                if (task.CorrectAnswers.Any(x => Normalize(x) == taskAttempt.Text))
                     taskAttempt.Status = TaskAttemptStatus.Accepted;
                 else
                     taskAttempt.Status = TaskAttemptStatus.Error;
