@@ -35,7 +35,7 @@ namespace Quest.Application.Tasks.Commands
                 SubmitTime = DateTime.Now.ToUniversalTime()
             };
 
-            if (task.VerificationType == VerificationType.Manual)
+            if (task.VerificationType != VerificationType.Manual)
             {
                 // do auto verification
                 var normalizedAnswer = Normalize(task.CorrectAnswer);
