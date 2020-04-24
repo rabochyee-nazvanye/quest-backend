@@ -32,7 +32,7 @@ namespace Quest.API.ViewModels.Tasks
             AdminComment = lastAttempt?.AdminComment;
             LastSubmittedAnswer = lastAttempt?.Text;
             
-            UsedHintNumbers = dto.UsedHints.Select(x => new HintVM(x)).ToList();
+            UsedHints = dto.UsedHints.Select(x => new HintVM(x)).ToList();
         }
         
         public int Id { get; set; }
@@ -42,7 +42,7 @@ namespace Quest.API.ViewModels.Tasks
         public string Question { get; set; }
         public string Group { get; set; }
         public int HintsCount { get; set; }
-        public List<HintVM> UsedHintNumbers { get; set; }
+        public List<HintVM> UsedHints { get; set; }
         public string LastSubmittedAnswer { get; set; }
         public string Status { get; set; }
         public string AdminComment { get; set; }
