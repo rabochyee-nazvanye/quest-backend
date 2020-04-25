@@ -15,10 +15,12 @@ namespace Quest.Application.Tasks.Commands
     public class SubmitTaskAttemptCommandHandler : IRequestHandler<SubmitTaskAttemptCommand, BaseResponse<TeamTaskStatusDTO>>
     {
         private readonly Db _context;
+        private readonly IMediator _mediator;
 
-        public SubmitTaskAttemptCommandHandler(Db context)
+        public SubmitTaskAttemptCommandHandler(Db context, IMediator mediator)
         {
             _context = context;
+            _mediator = mediator;
         }
 
         private async Task ProcessAttempt(TaskEntity task, string attemptText,
@@ -50,7 +52,7 @@ namespace Quest.Application.Tasks.Commands
             }
             
             // todo manual verification logic goes here
-            throw new NotImplementedException();
+            await _mediator.Send(new SendAttemptToHubCommand(taskAttempt), cancellationToken);
         }
         
         

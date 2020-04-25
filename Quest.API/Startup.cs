@@ -28,6 +28,7 @@ using Quest.Domain.Models;
 using Microsoft.OpenApi.Models;
 using Newtonsoft.Json;
 using Quest.API.Helpers;
+using Quest.Application;
 using Quest.Application.Teams.Commands;
 using Quest.Domain.Services;
 using IHostingEnvironment = Microsoft.AspNetCore.Hosting.IHostingEnvironment;
@@ -48,6 +49,7 @@ namespace Quest.API
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddCors();
+            services.AddSignalR();
             services.AddProblemDetails(setup => {
 
                 setup.IncludeExceptionDetails = (_,__) => Environment.IsDevelopment();
@@ -161,7 +163,11 @@ namespace Quest.API
                 c.SwaggerEndpoint("/swagger/v0/swagger.json", "api v0");
             });
 
-            app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapControllers();
+                endpoints.MapHub<AttemptsHub>("/attempts");
+            });
         }
     }
 }
