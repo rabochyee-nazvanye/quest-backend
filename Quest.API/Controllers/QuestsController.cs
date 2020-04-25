@@ -132,6 +132,7 @@ namespace Quest.API.Controllers
         
         [Authorize]
         [HttpPost("{id}/tasks")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> CreateTask(int id, [FromBody]CreateTaskVM model)
         {
             if (!ModelState.IsValid)
@@ -140,10 +141,7 @@ namespace Quest.API.Controllers
             //todo add proper verification for user priveleges later
             var userId = _userManager.GetUserId(User);
             var user = await _mediator.Send(new GetUserByIdQuery(userId));
-            if (user.UserName != "admin_user")
-                return ApiError.ProblemDetails(HttpStatusCode.Forbidden, 
-                    "You don't have an access to task creation");
-            
+
             var response = await _mediator.Send(new CreateTaskCommand()
             {
                 CorrectAnswer =  model.CorrectAnswer,

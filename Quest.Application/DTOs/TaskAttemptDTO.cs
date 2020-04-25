@@ -12,6 +12,8 @@ namespace Quest.Application.DTOs
             TeamId = taskAttempt.TeamId;
             TeamName = taskAttempt.Team.Name;
             Text = taskAttempt.Text;
+            ModeratorId = taskAttempt.Team.Moderator.Id;
+            ModeratorTelegramId = taskAttempt.Team.Moderator.TelegramId;
         }
         public int Id { get; set; }
 
@@ -22,5 +24,7 @@ namespace Quest.Application.DTOs
         public string TeamName { get; set; }
 
         public string Text { get; set; }
+        public int ModeratorTelegramId { get; set; }
+        public string ModeratorId { get; set; }
     }
 }

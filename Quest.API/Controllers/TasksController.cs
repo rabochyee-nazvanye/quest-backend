@@ -83,5 +83,25 @@ namespace Quest.API.Controllers
             
             return Ok(new HintVM(response.Result));
         }
+        
+        [Authorize(Roles="Admin")]
+        [HttpPost("{id}/attempts/{attemptId}")]
+        public async Task<IActionResult> UpdateTaskAttempt(int id, int attemptId, [FromBody]AttemptFeedbackVM attemptFeedback)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest();
+            
+            var response = await _mediator.Send(new VerifyTaskAttemptCommand
+            {
+                AttemptId = attemptId,
+                Message = attemptFeedback.Comment,
+                IsCorrect = attemptFeedback.IsCorrect
+            });
+
+            if (!response.Result)
+                return ApiError.ProblemDetails(HttpStatusCode.Forbidden, response.Message);
+            
+            return Ok();
+        }
     }
 }

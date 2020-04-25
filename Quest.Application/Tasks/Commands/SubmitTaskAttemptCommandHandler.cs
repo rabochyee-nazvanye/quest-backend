@@ -54,7 +54,13 @@ namespace Quest.Application.Tasks.Commands
             await _context.TaskAttempts.AddAsync(taskAttempt, cancellationToken);
             await _context.SaveChangesAsync(cancellationToken);
             
-            await _mediator.Send(new SendAttemptToHubCommand(taskAttempt), cancellationToken);
+            var response = await _mediator.Send(new SendAttemptToHubCommand(taskAttempt), cancellationToken);
+            if (!response.Result)
+            {
+                taskAttempt.AdminComment = response.Message;
+                taskAttempt.Status = TaskAttemptStatus.Error;
+                await _context.SaveChangesAsync(cancellationToken);
+            }
         }
         
         
@@ -71,6 +77,9 @@ namespace Quest.Application.Tasks.Commands
                 .Include(x => x.Quest)
                     .ThenInclude(x => x.Teams)
                         .ThenInclude(x => x.Members)
+                .Include(x => x.Quest)
+                    .ThenInclude(x => x.Teams)
+                        .ThenInclude(x => x.Moderator)
                 .Include(x => x.Quest)
                     .ThenInclude(x => x.Teams)
                         .ThenInclude(x => x.UsedHints)
