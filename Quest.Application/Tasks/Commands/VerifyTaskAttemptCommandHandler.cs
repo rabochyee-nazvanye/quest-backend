@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -27,8 +28,11 @@ namespace Quest.Application.Tasks.Commands
 
             if (taskAttempt.Status == TaskAttemptStatus.OnReview)
             {
+                var currentTime = $"{DateTime.Now:MM/dd/yyyy H:mm} UTC";
                 taskAttempt.Status = request.IsCorrect ? TaskAttemptStatus.Accepted : TaskAttemptStatus.Error;
-                taskAttempt.AdminComment = (string.IsNullOrEmpty(request.Message)) ? null : request.Message;
+                taskAttempt.AdminComment = (string.IsNullOrEmpty(request.Message))
+                    ? $"{currentTime}: no message"
+                    : $"{currentTime}: {request.Message}";
                 await _context.SaveChangesAsync(cancellationToken);
             }
             
