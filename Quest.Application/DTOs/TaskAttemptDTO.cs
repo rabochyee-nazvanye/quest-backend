@@ -14,6 +14,7 @@ namespace Quest.Application.DTOs
             Text = taskAttempt.Text;
             ModeratorId = taskAttempt.Team.Moderator.Id;
             ModeratorTelegramId = taskAttempt.Team.Moderator.TelegramId;
+            CorrectAnswerText = taskAttempt.TaskEntity.CorrectAnswer;
         }
         public int Id { get; set; }
 
@@ -26,5 +27,6 @@ namespace Quest.Application.DTOs
         public string Text { get; set; }
         public int ModeratorTelegramId { get; set; }
         public string ModeratorId { get; set; }
+        public string CorrectAnswerText { get; set; }
     }
 }
