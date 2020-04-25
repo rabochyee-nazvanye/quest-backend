@@ -51,7 +51,9 @@ namespace Quest.Application.Tasks.Commands
                 return;
             }
             
-            // todo manual verification logic goes here
+            await _context.TaskAttempts.AddAsync(taskAttempt, cancellationToken);
+            await _context.SaveChangesAsync(cancellationToken);
+            
             await _mediator.Send(new SendAttemptToHubCommand(taskAttempt), cancellationToken);
         }
         
