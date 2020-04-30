@@ -339,3 +339,4 @@ ASALocalRun/
 # BeatPulse healthcheck temp database
 healthchecksdb
 appsettings.json
+/Quest.API/Controllers/RolesController.cs

@@ -137,16 +137,12 @@ namespace Quest.API.Controllers
 
         [Authorize]
         [HttpPost("{teamId}/moderator/")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> AssignModeratorToTeam(int teamId,
             [FromBody]AssignModeratorToTeamVM model)
         {
             var userId = _userManager.GetUserId(User);
-            //todo add verification that user has privileges to assign moderator to quest
-            var user = await _mediator.Send(new GetUserByIdQuery(userId));
-            if (user.UserName != "admin_user")
-                return ApiError.ProblemDetails(HttpStatusCode.Forbidden, 
-                    "You don't have an access to task creation");
-
+            
             var response = await _mediator.Send(
                 new AssignModeratorToTeamCommand(teamId, userId, model.ModeratorId));
 
@@ -175,16 +171,10 @@ namespace Quest.API.Controllers
         }
         
         [Authorize]
+        [Authorize(Roles = "Admin")]
         [HttpGet("{id}/moderator")]
         public async Task<IActionResult> GetTeamModerator(int id)
         {
-            var userId = _userManager.GetUserId(User);
-            //todo add verification that user has privileges to do team lookup by invite code
-            var user = await _mediator.Send(new GetUserByIdQuery(userId));
-            if (user.UserName != "admin_user")
-                return ApiError.ProblemDetails(HttpStatusCode.Forbidden, 
-                    "You don't have an access to task creation");
-
             var response = await _mediator.Send(
                 new GetTeamInfoQuery(id));
 
