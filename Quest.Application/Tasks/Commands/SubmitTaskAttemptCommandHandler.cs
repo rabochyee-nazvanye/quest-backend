@@ -31,7 +31,7 @@ namespace Quest.Application.Tasks.Commands
             {
                 TaskEntity = task,
                 TeamId = teamId,
-                Text = Normalize(attemptText),
+                Text = attemptText,
                 UsedHintsCount = usedHintsCount,
                 Status = TaskAttemptStatus.OnReview,
                 SubmitTime = DateTime.Now.ToUniversalTime()
@@ -40,7 +40,7 @@ namespace Quest.Application.Tasks.Commands
             if (task.VerificationType == VerificationType.Automatic)
             {
                 // do auto verification
-                if (task.CorrectAnswers.Any(x => Normalize(x) == taskAttempt.Text))
+                if (task.CorrectAnswers.Any(x => Normalize(x) == Normalize(taskAttempt.Text)))
                     taskAttempt.Status = TaskAttemptStatus.Accepted;
                 else
                     taskAttempt.Status = TaskAttemptStatus.Error;
