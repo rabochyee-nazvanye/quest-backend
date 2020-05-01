@@ -33,7 +33,7 @@ namespace Quest.Application.Services
                         Name = teamConstructorArgs.Name,
                         PrincipalUserId = teamConstructorArgs.PrincipalUserId,
                         QuestId = teamConstructorArgs.QuestId,
-                        InviteTokenSecret = _teamService.GenerateTeamToken(10)
+                        InviteTokenSecret = _teamService.GenerateTeamToken(6)
                     };
                     team.Members = new List<TeamUser>{new TeamUser
                     {
