@@ -8,11 +8,12 @@ using Microsoft.EntityFrameworkCore;
 using Quest.Application.DTOs;
 using Quest.DAL.Data;
 using Quest.Domain.Enums;
+using Quest.Domain.Interfaces;
 using Quest.Domain.Models;
 
 namespace Quest.Application.Tasks.Commands
 {
-    public class SubmitTaskAttemptCommandHandler : IRequestHandler<SubmitTaskAttemptCommand, BaseResponse<TeamTaskStatusDTO>>
+    public class SubmitTaskAttemptCommandHandler : IRequestHandler<SubmitTaskAttemptCommand, BaseResponse<TaskStatusDTO>>
     {
         private readonly Db _context;
         private readonly IMediator _mediator;
@@ -24,13 +25,13 @@ namespace Quest.Application.Tasks.Commands
         }
 
         private async Task ProcessAttempt(TaskEntity task, string attemptText,
-            int teamId, int usedHintsCount, CancellationToken cancellationToken)
+            int participantId, int usedHintsCount, CancellationToken cancellationToken)
         {
             static string Normalize(string x) => x.Trim().ToLowerInvariant();
             var taskAttempt = new TaskAttempt
             {
                 TaskEntity = task,
-                TeamId = teamId,
+                ParticipantId = participantId,
                 Text = attemptText,
                 UsedHintsCount = usedHintsCount,
                 Status = TaskAttemptStatus.OnReview,
@@ -64,46 +65,46 @@ namespace Quest.Application.Tasks.Commands
         }
         
         
-        public async Task<BaseResponse<TeamTaskStatusDTO>> Handle(SubmitTaskAttemptCommand request, CancellationToken cancellationToken)
+        public async Task<BaseResponse<TaskStatusDTO>> Handle(SubmitTaskAttemptCommand request, CancellationToken cancellationToken)
         {
             var userExists = await _context.Users.AnyAsync(x => x.Id == request.UserId,
                 cancellationToken: cancellationToken);
 
             if (!userExists)
-                return BaseResponse.Failure<TeamTaskStatusDTO>("Internal: user not found");
+                return BaseResponse.Failure<TaskStatusDTO>("Internal: user not found");
             
             var task = await _context.Tasks.Where(x => x.Id == request.TaskId)
                 .Include(x => x.TaskAttempts)
                 .Include(x => x.Quest)
-                    .ThenInclude(x => x.Teams)
-                        .ThenInclude(x => x.Members)
+                .ThenInclude(x => x.Participants)
+                    .ThenInclude(x => (x as Team).Members)
+                            .ThenInclude(x => x.User)
                 .Include(x => x.Quest)
-                    .ThenInclude(x => x.Teams)
+                    .ThenInclude(x => x.Participants)
                         .ThenInclude(x => x.Moderator)
                 .Include(x => x.Quest)
-                    .ThenInclude(x => x.Teams)
+                    .ThenInclude(x => x.Participants)
                         .ThenInclude(x => x.UsedHints)
                             .ThenInclude(x => x.Hint)
                 .FirstOrDefaultAsync(cancellationToken);
 
             if (task == null)
-                return BaseResponse.Failure<TeamTaskStatusDTO>("Task was not found");
+                return BaseResponse.Failure<TaskStatusDTO>("Task was not found");
 
-            var team = task.Quest.Teams
-                .FirstOrDefault(x => x.Members.Any(m => m.UserId == request.UserId));
+            var participant = task.Quest.FindParticipant(request.UserId);
             
-            if (team == null)
-                return BaseResponse.Failure<TeamTaskStatusDTO>("Team was not found");
+            if (participant == null)
+                return BaseResponse.Failure<TaskStatusDTO>("User is not participating in this quest");
 
-            if (team.Quest.GetQuestStatus() != QuestEntity.QuestStatus.InProgress)
-                return BaseResponse.Failure<TeamTaskStatusDTO>("Quest is not in active state yet.");
+            if (!task.Quest.IsReadyToReceiveTaskAttempts())
+                return BaseResponse.Failure<TaskStatusDTO>("Quest is not in active state yet.");
 
-            var usedHints = team.UsedHints
+            var usedHints = participant.UsedHints
                 .Where(x => x.Hint.TaskId == task.Id)
                 .Select(x => x.Hint)
                 .ToList();
             
-            await ProcessAttempt(task, request.AttemptText, team.Id, usedHints.Count, cancellationToken);
+            await ProcessAttempt(task, request.AttemptText, participant.Id, usedHints.Count, cancellationToken);
             
             // quick and dirty task re-fetch
             var updatedTask = await _context.Tasks.Where(x => x.Id == request.TaskId)
@@ -112,7 +113,7 @@ namespace Quest.Application.Tasks.Commands
                 .FirstOrDefaultAsync(cancellationToken);
 
             
-            return BaseResponse.Success(new TeamTaskStatusDTO(updatedTask, usedHints), "Success");
+            return BaseResponse.Success(new TaskStatusDTO(updatedTask, usedHints), "Success");
         }
     }
 }

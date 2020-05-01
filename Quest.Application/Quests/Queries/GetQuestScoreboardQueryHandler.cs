@@ -26,7 +26,7 @@ namespace Quest.Application.Quests.Queries
             var quest = await _context.Quests
                 .Where(x => x.Id == request.QuestId)
                 .Include(x => x.Tasks)
-                .Include(x => x.Teams)
+                .Include(x => x.Participants)
                 .ThenInclude(x => x.TaskAttempts)
                 .ThenInclude(x => x.TaskEntity)
                 .FirstOrDefaultAsync(cancellationToken: cancellationToken);
@@ -34,10 +34,10 @@ namespace Quest.Application.Quests.Queries
             if (quest == null)
                 return BaseResponse.Failure<QuestScoreboardDTO>("Quest not found.");
 
-            if (quest.GetQuestStatus() != QuestEntity.QuestStatus.ResultsAvailable)
+            if (!quest.IsReadyToReceiveTaskAttempts())
                 return BaseResponse.Failure<QuestScoreboardDTO>("Results are not available yet.");
             
-            var teamsResults = quest.Teams.Select(team =>
+            var teamsResults = quest.Participants.Select(team =>
             {
                 var successfulAttempts = team.TaskAttempts
                     .Where(x => x.Status == TaskAttemptStatus.Accepted)
@@ -57,7 +57,7 @@ namespace Quest.Application.Quests.Queries
                     return (taskReward * (100 - totalPenaltyPercent)) / 100;
                 }).ToList();
 
-                return new TeamResultDTO
+                return new ParticipantResultDTO
                 {
                     Name = team.Name,
                     Score = bestAttemptScores.Sum()

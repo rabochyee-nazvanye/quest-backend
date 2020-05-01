@@ -32,15 +32,15 @@ namespace Quest.Application.Teams.Commands
             if (team == null)
                 return BaseResponse.Failure<bool>("Team not found!");
 
-            if (team.CaptainUserId != request.UserId && request.UserId != request.UserToKickId)
-                return BaseResponse.Failure<bool>("You need to be a captain to kick this user from team");
+            if (team.PrincipalUserId != request.UserId && request.UserId != request.UserToKickId)
+                return BaseResponse.Failure<bool>("You need to be a principal to kick this user from team");
             
             var userToKick = team.Members.FirstOrDefault(x => x.UserId == request.UserToKickId);
 
             if (userToKick == null)
                 return BaseResponse.Failure<bool>("This user does not belong to this team.");
 
-            if (request.UserToKickId == team.CaptainUserId)
+            if (request.UserToKickId == team.PrincipalUserId)
             {
                 if (team.Members.Count <= 1)
                 {
@@ -48,7 +48,7 @@ namespace Quest.Application.Teams.Commands
                 }
                 else
                 {
-                    team.CaptainUserId = team.Members.First(x => x.UserId != request.UserToKickId).UserId;
+                    team.PrincipalUserId = team.Members.First(x => x.UserId != request.UserToKickId).UserId;
                     team.Members.Remove(userToKick);
                 }
             }

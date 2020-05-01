@@ -12,7 +12,7 @@ using Quest.Domain.Models;
 
 namespace Quest.Application.Quests.Queries
 {
-    public class GetQuestProgressboardQueryHandler : IRequestHandler<GetQuestProgressboardQuery, BaseResponse<QuestProgressboardDTO>>
+    public class GetQuestProgressboardQueryHandler : IRequestHandler<GetQuestProgressboardQuery, BaseResponse<QuestParticipantProgressAndTasksDTO>>
     {
         private readonly Db _context;
         private const int UsedHintPenaltyPercent = 20;
@@ -22,7 +22,7 @@ namespace Quest.Application.Quests.Queries
             _context = context;
         }
 
-        public async Task<BaseResponse<QuestProgressboardDTO>> Handle(GetQuestProgressboardQuery request, CancellationToken cancellationToken)
+        public async Task<BaseResponse<QuestParticipantProgressAndTasksDTO>> Handle(GetQuestProgressboardQuery request, CancellationToken cancellationToken)
         {
             var user = await _context.Users
                 .Where(x => x.Id == request.UserId)
@@ -30,27 +30,27 @@ namespace Quest.Application.Quests.Queries
                 .FirstOrDefaultAsync(cancellationToken);
 
             if (user == null)
-                return BaseResponse.Failure<QuestProgressboardDTO>("Internal: user not found");
+                return BaseResponse.Failure<QuestParticipantProgressAndTasksDTO>("Internal: user not found");
 
             if (user.ModeratedTeams.All(x => x.QuestId != request.QuestId))
-                return BaseResponse.Failure<QuestProgressboardDTO>("User is not a moderator of this quest");
+                return BaseResponse.Failure<QuestParticipantProgressAndTasksDTO>("User is not a moderator of this quest");
             
             var quest = await _context.Quests
                 .Where(x => x.Id == request.QuestId)
                 .Include(x => x.Tasks)
-                .Include(x => x.Teams)
+                .Include(x => x.Participants)
                 .ThenInclude(x => x.TaskAttempts)
                 .ThenInclude(x => x.TaskEntity)
                 .FirstOrDefaultAsync(cancellationToken: cancellationToken);
 
             if (quest == null)
-                return BaseResponse.Failure<QuestProgressboardDTO>("Quest not found.");
+                return BaseResponse.Failure<QuestParticipantProgressAndTasksDTO>("Quest not found.");
 
             var allQuestTasks = quest.Tasks.ToList();
             
-            var teamsResults = quest.Teams.Select(team =>
+            var teamsResults = quest.Participants.Select(participant =>
             {
-                var successfulAttempts = team.TaskAttempts
+                var successfulAttempts = participant.TaskAttempts
                     .Where(x => x.Status == TaskAttemptStatus.Accepted)
                     .ToLookup(x => x.TaskId);
                 
@@ -81,12 +81,12 @@ namespace Quest.Application.Quests.Queries
                     })
                     .ToDictionary(x => x.task, x => x.score);
 
-                return new TeamProgressDTO(team, allTaskScores);
+                return new ParticipantProgressDTO(participant, allTaskScores);
             }).ToList();
 
             var allTasksLookupByGroup = allQuestTasks.ToLookup(x => x.Group, x => x);
 
-            return BaseResponse.Success(new QuestProgressboardDTO(teamsResults, allTasksLookupByGroup));
+            return BaseResponse.Success(new QuestParticipantProgressAndTasksDTO(teamsResults, allTasksLookupByGroup));
         }
     }
 }

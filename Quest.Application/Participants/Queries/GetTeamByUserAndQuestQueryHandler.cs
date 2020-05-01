@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Quest.DAL.Data;
+using Quest.Domain.Interfaces;
 using Quest.Domain.Models;
 
 namespace Quest.Application.Teams.Queries
@@ -25,20 +26,23 @@ namespace Quest.Application.Teams.Queries
             
             var quest = await _context.Quests
                 .Where(x => x.Id == request.QuestId)
-                .Include(x => x.Teams)
-                .ThenInclude(x => x.Captain)
-                .Include(x => x.Teams)
-                .ThenInclude(x => x.Members)
-                .ThenInclude(x => x.User)
                 .FirstOrDefaultAsync(cancellationToken);
 
             if (quest == null)
                 return BaseResponse.Failure<List<Team>>("Quest not found");
             
-            var teams = quest.Teams
-                .Where(x => x.Members.Any(x => request.MemberIds.Contains(x.UserId)))
-                .ToList();
+            if (!(quest is ITeamQuest teamQuest))
+                return BaseResponse.Failure<List<Team>>("Quest with specified id is not a team quest");
 
+            var teams = await _context.Teams
+                .Where(x => x.QuestId == quest.Id &&
+                                                        x.Members.Any(teamUser =>
+                                                            request.MemberIds.Contains(teamUser.UserId)))
+                .Include(x => x.Principal)
+                .Include(x => x.Members)
+                .ThenInclude(x => x.User)
+                .ToListAsync(cancellationToken: cancellationToken);
+            
             return BaseResponse.Success(teams, "Success");
         }
     }

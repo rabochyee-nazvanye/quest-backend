@@ -7,7 +7,7 @@ using Quest.Domain.Models;
 
 namespace Quest.Application.Tasks.Queries
 {
-    public class GetQuestTasksQuery : IRequest<BaseResponse<List<TeamTaskStatusDTO>>>
+    public class GetQuestTasksQuery : IRequest<BaseResponse<List<TaskStatusDTO>>>
     {
         public GetQuestTasksQuery(string userId,int questId)
         {

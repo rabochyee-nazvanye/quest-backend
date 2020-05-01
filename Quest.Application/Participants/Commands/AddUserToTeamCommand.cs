@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using MediatR;
+﻿using MediatR;
 
-namespace Quest.Application.Teams.Commands
+namespace Quest.Application.Participants.Commands
 {
     public class AddUserToTeamCommand : IRequest<BaseResponse<bool>>
     {

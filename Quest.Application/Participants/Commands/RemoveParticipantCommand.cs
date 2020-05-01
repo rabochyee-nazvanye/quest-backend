@@ -6,15 +6,15 @@ using Quest.Domain.Models;
 
 namespace Quest.Application.Teams.Commands
 {
-    public class RemoveTeamCommand : IRequest<BaseResponse<bool>>
+    public class RemoveParticipantCommand : IRequest<BaseResponse<bool>>
     {
-        public RemoveTeamCommand(string userId, int teamId)
+        public RemoveParticipantCommand(string userId, int participantId)
         {
             UserId = userId;
-            TeamId = teamId;
+            ParticipantId = participantId;
         }
 
         public string UserId { get; set; }
-        public int TeamId { get; set; }
+        public int ParticipantId { get; set; }
     }
 }

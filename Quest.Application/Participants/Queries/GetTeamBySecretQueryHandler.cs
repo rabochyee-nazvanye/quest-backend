@@ -25,7 +25,7 @@ namespace Quest.Application.Teams.Queries
             return await _context.Teams.Where(x => x.InviteTokenSecret == request.Secret)
                 .Include(x => x.Members)
                 .ThenInclude(x => x.User)
-                .Include(x => x.Captain)
+                .Include(x => x.Principal)
                 .Include(x => x.Quest)
                 .Include(x => x.Moderator)
                 .FirstOrDefaultAsync(cancellationToken: cancellationToken);

@@ -1,15 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Quest.DAL.Data;
+using Quest.Domain.Interfaces;
 using Quest.Domain.Models;
 
-namespace Quest.Application.Teams.Commands
+namespace Quest.Application.Participants.Commands
 {
     public class AddUserToTeamCommandHandler : IRequestHandler<AddUserToTeamCommand, BaseResponse<bool>>
     {
@@ -33,12 +31,14 @@ namespace Quest.Application.Teams.Commands
 
             var team = await _context.Teams
                 .Where(x => x.Id == request.TeamId)
-                .Include(x => x.Quest)
-                .ThenInclude(x => x.Teams)
-                .ThenInclude(x => x.Members)
                 .Include(x => x.Members)
                 .ThenInclude(x => x.User)
+                .Include(x => x.Quest)
+                .ThenInclude(x => x.Participants)
+                .ThenInclude(x => (x as Team).Members)
+                .ThenInclude(x => x.User)
                 .FirstOrDefaultAsync(cancellationToken: cancellationToken);
+            
             if (team == null)
                 return BaseResponse.Failure<bool>("Couldn't find team with that ID");
 
@@ -48,33 +48,33 @@ namespace Quest.Application.Teams.Commands
             if (!team.ValidateSecret(request.TeamSecret))
                 return BaseResponse.Failure<bool>("Bad secret");
 
-            if (team.Members.Count >= team.Quest.MaxTeamSize)
+            if (team.Members.Count() >= team.GetQuest().MaxTeamSize)
                 return BaseResponse.Failure<bool>("You couldn't add more people to the team!");
     
             if (team.Members.Any(x => x.UserId == user.Id))
                 return BaseResponse.Failure<bool>("User is already in that team!");
 
             var teamConnections =
-                team.Quest.Teams
+                team.GetQuest().GetTeams()
                     .Where(x => x.Id != team.Id && x.Members.Any(m => m.UserId == user.Id))
                     .Select(x => x.Members.FirstOrDefault(m => m.UserId == user.Id))
                     .ToList();
 
             var connectionsToTransfer =
                 teamConnections
-                    .Where(x => x.Team.CaptainUserId == user.Id && x.Team.Members.Count > 1)
+                    .Where(x => x.Team.PrincipalUserId == user.Id && x.Team.Members.Count > 1)
                     .ToList();
             
             if (connectionsToTransfer.Any())
             {
                 foreach (var connection in connectionsToTransfer)
                 {
-                    connection.Team.CaptainUserId = connection.Team.Members.First(x => x.UserId != user.Id).UserId;
+                    connection.Team.PrincipalUserId = connection.Team.Members.First(x => x.UserId != user.Id).UserId;
                 }
             }
 
             var teamsToRemove = teamConnections
-                .Where(x => x.Team.CaptainUserId == user.Id && x.Team.Members.Count <= 1)
+                .Where(x => x.Team.PrincipalUserId == user.Id && x.Team.Members.Count <= 1)
                 .Select(x => x.Team)
                 .ToList();
 
