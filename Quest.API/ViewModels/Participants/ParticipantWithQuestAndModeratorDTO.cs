@@ -12,7 +12,7 @@ namespace Quest.API.ViewModels.Teams
     {
         public ParticipantWithQuestAndModeratorDTO(Participant row) : base(row)
         {
-            Quest = new QuestDTO(row.Quest);
+            Quest = QuestDTOFactory.CreateBasic(row.Quest);
             if (row.Moderator != null)
                 Moderator = new ModeratorDTO(row.Moderator);
         }

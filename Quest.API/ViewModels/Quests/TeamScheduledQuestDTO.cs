@@ -12,12 +12,12 @@ namespace Quest.API.ViewModels.Quests
             StartDate = row.StartDate;
             EndDate = row.EndDate;
             Status = row.GetQuestStatus().ToString().ToLowerInvariant();
-            IsInfinite = false;
         }
         public DateTime RegistrationDeadline { get; set; }
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
         public string Status { get; set; }
-        public bool IsInfinite { get; set; }
+        protected override bool CheckIsInfinite() => false;
+        protected override string GetQuestType() => "team";
     }
 }

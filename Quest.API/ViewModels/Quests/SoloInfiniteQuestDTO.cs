@@ -6,8 +6,9 @@ namespace Quest.API.ViewModels.Quests
     {
         public SoloInfiniteQuestDTO(IInfiniteQuest row) : base(row)
         {
-            IsInfinite = true;
         }
-        public bool IsInfinite { get; set; }
+        
+        protected override string GetQuestType() => "solo";
+        protected override bool CheckIsInfinite() => true;
     }
 }

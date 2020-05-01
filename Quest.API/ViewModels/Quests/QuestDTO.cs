@@ -7,7 +7,7 @@ using Quest.Domain.Models;
 
 namespace Quest.API.ViewModels.Quests
 {
-    public class QuestDTO
+    public abstract class QuestDTO
     {
         public QuestDTO(IQuest row)
         {
@@ -20,5 +20,9 @@ namespace Quest.API.ViewModels.Quests
         public string Name { get; set; }
         public string Description { get; set; }
         public string ImageUrl { get; set; }
+        protected abstract string GetQuestType();
+        public string Type => GetQuestType();
+        protected abstract bool CheckIsInfinite();
+        public bool IsInfinite => CheckIsInfinite();
     }
 }
