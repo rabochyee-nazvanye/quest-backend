@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
+using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Text.Json;
@@ -61,7 +62,11 @@ namespace Quest.API
                     .RequireAuthenticatedUser()
                     .Build();
                 o.Filters.Add(new AuthorizeFilter(policy));
-            }).AddJsonOptions(o => { o.JsonSerializerOptions.Converters.Add(new DateTimeConverter()); });
+            }).AddNewtonsoftJson(o =>
+            {
+                o.SerializerSettings.DateFormatString = "yyyy-MM-ddTHH:mm:ss.fffZ";
+                o.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
+            });
 
             // Get Connection string from configuration file
             var connection = Configuration.GetConnectionString("DefaultConnection");
@@ -116,7 +121,7 @@ namespace Quest.API
 
             //add MediatR for API & Application assemblies
             services.AddMediatR(typeof(Startup).GetTypeInfo().Assembly);
-            services.AddMediatR(typeof(CreateTeamCommand).GetTypeInfo().Assembly);
+            services.AddMediatR(typeof(CreateParticipantCommand).GetTypeInfo().Assembly);
         }
 
       // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

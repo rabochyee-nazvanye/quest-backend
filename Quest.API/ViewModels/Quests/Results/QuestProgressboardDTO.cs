@@ -5,17 +5,17 @@ using Quest.Application.DTOs;
 
 namespace Quest.API.ViewModels.Quests
 {
-    public class QuestProgressboardVM
+    public class QuestProgressboardDTO
     {
-        public QuestProgressboardVM(QuestProgressboardDTO dto)
+        public QuestProgressboardDTO(QuestParticipantProgressAndTasksDTO dto)
         {
             Data = new List<Dictionary<string, string>>();
             
             //populate teams scores
-            foreach (var teamProgress in dto.TeamProgresses.OrderByDescending(x => 
+            foreach (var teamProgress in dto.ParticipantProgress.OrderByDescending(x => 
                 x.Scores.Select(x => x.Value).Sum()))
             {
-                var teamInfo = new Dictionary<string, string> {{"teamname", teamProgress.Team.Name}};
+                var teamInfo = new Dictionary<string, string> {{"teamname", teamProgress.Participant.Name}};
                 foreach (var taskScore in teamProgress.Scores
                     .OrderBy(x => x.Key.Id))
                 {
@@ -28,7 +28,7 @@ namespace Quest.API.ViewModels.Quests
             //populate team name column data
             var teamNameHeading = new
             {
-                title = "Имя команды",
+                title = "Имя участника",
                 dataIndex = "teamname",
                 key = "teamname",
                 @fixed = "left",

@@ -2,9 +2,9 @@
 
 namespace Quest.API.ViewModels.Users
 {
-    public class UserVM
+    public class UserDTO
     {
-        public UserVM(ApplicationUser row)
+        public UserDTO(ApplicationUser row)
         {
             Id = row.Id;
             Name = row.UserName;

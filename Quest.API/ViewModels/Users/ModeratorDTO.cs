@@ -2,9 +2,9 @@ using Quest.Domain.Models;
 
 namespace Quest.API.ViewModels.Users
 {
-    public class ModeratorVM : UserVM
+    public class ModeratorDTO : UserDTO
     {
-        public ModeratorVM(ApplicationUser row) : base(row)
+        public ModeratorDTO(ApplicationUser row) : base(row)
         {
             TelegramId = row.TelegramId;
         }

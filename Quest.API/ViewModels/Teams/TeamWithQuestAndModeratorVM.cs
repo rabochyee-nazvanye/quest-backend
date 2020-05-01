@@ -12,12 +12,12 @@ namespace Quest.API.ViewModels.Teams
     {
         public TeamWithQuestAndModeratorVM(Team row) : base(row)
         {
-            Quest = new QuestVM(row.Quest);
+            Quest = new QuestDTO(row.Quest);
             if (row.Moderator != null)
-                Moderator = new ModeratorVM(row.Moderator);
+                Moderator = new ModeratorDTO(row.Moderator);
         }
         
-        public QuestVM Quest { get; set; }
-        public ModeratorVM Moderator { get; set; }
+        public QuestDTO Quest { get; set; }
+        public ModeratorDTO Moderator { get; set; }
     }
 }

@@ -25,7 +25,6 @@ using Quest.Application.Teams.Queries;
 using Quest.DAL.Data;
 using Quest.Domain.Models;
 
-
 namespace Quest.API.Controllers
 {
     [ApiController]

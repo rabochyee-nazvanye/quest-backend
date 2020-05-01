@@ -15,12 +15,13 @@ using Quest.API.Helpers.Errors;
 using Quest.API.Services;
 using Quest.API.ViewModels.Teams;
 using Quest.API.ViewModels.Users;
+using Quest.Application.Participants.Commands;
+using Quest.Application.Services;
 using Quest.Application.Teams.Commands;
 using Quest.Application.Teams.Queries;
 using Quest.Application.Users.Queries;
 using Quest.DAL.Data;
 using Quest.Domain.Models;
-
 
 namespace Quest.API.Controllers
 {
@@ -49,7 +50,7 @@ namespace Quest.API.Controllers
                 return NotFound();
             }
 
-            return Json(new TeamWithCaptainAndMembersVM(team));
+            return Json(new TeamWithCaptainAndMembersDTO(team));
         }
 
 
@@ -64,17 +65,26 @@ namespace Quest.API.Controllers
 
             var userId = _userManager.GetUserId(User);
 
-            var createTeamCommand = new CreateTeamCommand(model.Name, userId, model.QuestId);
+            var createTeamArgs = new TeamConstructorArgs
+            {
+                Name = model.Name,
+                PrincipalUserId = userId,
+                QuestId = model.QuestId
+            };
+            
+            var createTeamCommand = new CreateParticipantCommand(createTeamArgs);
 
             var response = await _mediator.Send(createTeamCommand);
 
             if (response.Result == null)
                 return ApiError.ProblemDetails(HttpStatusCode.Forbidden, response.Message);
 
-            return Created("/team/" + response.Result.Id, new
+            var team = response.Result as Team;
+            
+            return Created("/team/" + team.Id, new
             {
                 teamId = response.Result.Id,
-                inviteLink = "/invites/" + response.Result.InviteTokenSecret
+                inviteLink = "/invites/" + team.InviteTokenSecret
             });
         }
 
@@ -126,7 +136,7 @@ namespace Quest.API.Controllers
         {
             var userId = _userManager.GetUserId(User);
 
-            var response = await _mediator.Send(new RemoveTeamCommand(userId, teamId));
+            var response = await _mediator.Send(new RemoveParticipantCommand(userId, teamId));
 
             if (!response.Result)
                 return ApiError.ProblemDetails(HttpStatusCode.Forbidden, response.Message);
@@ -144,7 +154,7 @@ namespace Quest.API.Controllers
             var userId = _userManager.GetUserId(User);
             
             var response = await _mediator.Send(
-                new AssignModeratorToTeamCommand(teamId, userId, model.ModeratorId));
+                new AssignModeratorToParticipantCommand(teamId, userId, model.ModeratorId));
 
             if (!response.Result)
                 return ApiError.ProblemDetails(HttpStatusCode.Forbidden, response.Message);
@@ -181,7 +191,7 @@ namespace Quest.API.Controllers
             if (response?.Moderator == null)
                 return NotFound();
 
-            return Ok(new ModeratorVM(response.Moderator));
+            return Ok(new ModeratorDTO(response.Moderator));
         }
         
          

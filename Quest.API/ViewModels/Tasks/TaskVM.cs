@@ -10,7 +10,7 @@ namespace Quest.API.ViewModels.Tasks
 {
     public class TaskVM
     {
-        public TaskVM(TeamTaskStatusDTO dto)
+        public TaskVM(TaskStatusDTO dto)
         {
             Id = dto.Task.Id;
             Name = dto.Task.Name;

@@ -25,8 +25,6 @@ using Quest.Application.Users.Queries;
 using Quest.DAL.Data;
 using Quest.Domain.Models;
 
-// For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-
 namespace Quest.API.Controllers
 {
     [Authorize]
@@ -57,7 +55,7 @@ namespace Quest.API.Controllers
                 return NotFound("User with that username not found.");
             }
 
-            return Json(new UserVM(user));
+            return Json(new UserDTO(user));
         }
 
         [HttpPost]
@@ -83,7 +81,10 @@ namespace Quest.API.Controllers
 
             return Created($"/users/{user.Id}", new
             {
-                token = _tokenService.BuildToken(user.UserName)
+                token = new
+                {
+                    result = await _tokenService.BuildToken(user.UserName)
+                }
             });
         }
     }

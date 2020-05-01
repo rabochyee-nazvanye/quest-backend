@@ -22,8 +22,6 @@ using Quest.Application.Users.Queries;
 using Quest.DAL.Data;
 using Quest.Domain.Models;
 
-// For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-
 namespace Quest.API.Controllers
 {
     [Authorize]
@@ -59,7 +57,10 @@ namespace Quest.API.Controllers
             {
                 return Ok(new
                 {
-                    token = _tokenService.BuildToken(login.Username)
+                    token = new
+                    {
+                        result = await _tokenService.BuildToken(login.Username)
+                    }
                 });
             }
 
@@ -80,7 +81,7 @@ namespace Quest.API.Controllers
                     "Failed to load user details");
             }
 
-            return Ok(new UserVM(user));
+            return Ok(new UserDTO(user));
         }
     }
 }

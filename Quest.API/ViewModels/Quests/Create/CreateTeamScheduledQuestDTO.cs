@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Quest.API.ViewModels.Quests
 {
-    public class CreateQuestVM
+    public class CreateTeamScheduledQuestDTO
     { 
         [Required]
         public string Name { get; set; }
@@ -17,7 +17,7 @@ namespace Quest.API.ViewModels.Quests
         public DateTime StartDate { get; set; }
         [Required]
         public DateTime EndDate { get; set; }
-        [Range(0, int.MaxValue)]
+        [Range(1, int.MaxValue)]
         public int MaxTeamSize { get; set; }
     }
 }
