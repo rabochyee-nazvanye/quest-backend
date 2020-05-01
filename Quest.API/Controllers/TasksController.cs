@@ -10,13 +10,11 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
+using Quest.API.BindingModels.TaskAttempts;
 using Quest.API.Helpers;
 using Quest.API.Helpers.Errors;
-using Quest.API.ViewModels.Hints;
-using Quest.API.ViewModels.Quests;
-using Quest.API.ViewModels.TaskAttempts;
-using Quest.API.ViewModels.Tasks;
-using Quest.API.ViewModels.Teams;
+using Quest.API.ResourceModels.Hints;
+using Quest.API.ResourceModels.Tasks;
 using Quest.Application.Quests.Commands;
 using Quest.Application.Quests.Queries;
 using Quest.Application.Tasks.Commands;
@@ -24,7 +22,6 @@ using Quest.Application.Tasks.Queries;
 using Quest.Application.Teams.Queries;
 using Quest.DAL.Data;
 using Quest.Domain.Models;
-
 
 namespace Quest.API.Controllers
 {
@@ -45,7 +42,7 @@ namespace Quest.API.Controllers
 
         [Authorize]
         [HttpPost("{id}/attempts")]
-        public async Task<IActionResult> SubmitTaskAttempt(int id, [FromBody]TaskAttemptVM model)
+        public async Task<IActionResult> SubmitTaskAttempt(int id, [FromBody]TaskAttemptRM model)
         {
             if (!ModelState.IsValid)
                 return BadRequest();
@@ -62,7 +59,7 @@ namespace Quest.API.Controllers
             if (response.Result == null)
                 return ApiError.ProblemDetails(HttpStatusCode.Forbidden, response.Message);
             
-            return Ok(new TaskVM(response.Result));
+            return Ok(new TaskWithStatusAndHintsRM(response.Result));
         }
         
         [Authorize]
@@ -81,12 +78,12 @@ namespace Quest.API.Controllers
             if (response.Result == null)
                 return ApiError.ProblemDetails(HttpStatusCode.Forbidden, response.Message);
             
-            return Ok(new HintVM(response.Result));
+            return Ok(new HintRM(response.Result));
         }
         
         [Authorize(Roles="Admin")]
         [HttpPost("{id}/attempts/{attemptId}")]
-        public async Task<IActionResult> UpdateTaskAttempt(int id, int attemptId, [FromBody]AttemptFeedbackVM attemptFeedback)
+        public async Task<IActionResult> UpdateTaskAttempt(int id, int attemptId, [FromBody]AttemptFeedbackBM attemptFeedback)
         {
             if (!ModelState.IsValid)
                 return BadRequest();

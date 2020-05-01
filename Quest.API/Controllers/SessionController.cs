@@ -13,16 +13,14 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Primitives;
 using Microsoft.IdentityModel.Tokens;
+using Quest.API.BindingModels.Sessions;
 using Quest.API.Helpers;
 using Quest.API.Helpers.Errors;
+using Quest.API.ResourceModels.Users;
 using Quest.API.Services;
-using Quest.API.ViewModels.Sessions;
-using Quest.API.ViewModels.Users;
 using Quest.Application.Users.Queries;
 using Quest.DAL.Data;
 using Quest.Domain.Models;
-
-// For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
 namespace Quest.API.Controllers
 {
@@ -49,7 +47,7 @@ namespace Quest.API.Controllers
         
         [AllowAnonymous]
         [HttpPost]
-        public async Task<IActionResult> Login([FromBody]LoginVM login)
+        public async Task<IActionResult> Login([FromBody]LoginBM login)
         {
             if (!ModelState.IsValid)
                 return BadRequest();
@@ -59,7 +57,10 @@ namespace Quest.API.Controllers
             {
                 return Ok(new
                 {
-                    token = _tokenService.BuildToken(login.Username)
+                    token = new
+                    {
+                        result = await _tokenService.BuildToken(login.Username)
+                    }
                 });
             }
 
@@ -80,7 +81,7 @@ namespace Quest.API.Controllers
                     "Failed to load user details");
             }
 
-            return Ok(new UserVM(user));
+            return Ok(new UserRM(user));
         }
     }
 }

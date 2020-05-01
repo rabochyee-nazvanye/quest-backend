@@ -10,17 +10,20 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
+using Quest.API.BindingModels.Teams;
 using Quest.API.Helpers;
 using Quest.API.Helpers.Errors;
+using Quest.API.ResourceModels.Participants;
+using Quest.API.ResourceModels.Teams;
+using Quest.API.ResourceModels.Users;
 using Quest.API.Services;
-using Quest.API.ViewModels.Teams;
-using Quest.API.ViewModels.Users;
+using Quest.Application.Participants.Commands;
+using Quest.Application.Services;
 using Quest.Application.Teams.Commands;
 using Quest.Application.Teams.Queries;
 using Quest.Application.Users.Queries;
 using Quest.DAL.Data;
 using Quest.Domain.Models;
-
 
 namespace Quest.API.Controllers
 {
@@ -42,20 +45,20 @@ namespace Quest.API.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> GetTeamById(int id)
         {
-            var team = await _mediator.Send(new GetTeamInfoQuery(id));
+            var team = await _mediator.Send(new GetParticipantInfoQuery(id));
 
             if (team == null)
             {
                 return NotFound();
             }
 
-            return Json(new TeamWithCaptainAndMembersVM(team));
+            return Json(new TeamWithCaptainAndMembersRM(team as Team));
         }
 
 
         [Authorize]
         [HttpPost]
-        public async Task<IActionResult> Post(CreateTeamVM model)
+        public async Task<IActionResult> Post(CreateTeamBM model)
         {
             if (!ModelState.IsValid)
             {
@@ -64,24 +67,33 @@ namespace Quest.API.Controllers
 
             var userId = _userManager.GetUserId(User);
 
-            var createTeamCommand = new CreateTeamCommand(model.Name, userId, model.QuestId);
+            var createTeamArgs = new TeamConstructorArgs
+            {
+                Name = model.Name,
+                PrincipalUserId = userId,
+                QuestId = model.QuestId
+            };
+            
+            var createTeamCommand = new CreateParticipantCommand(createTeamArgs);
 
             var response = await _mediator.Send(createTeamCommand);
 
             if (response.Result == null)
                 return ApiError.ProblemDetails(HttpStatusCode.Forbidden, response.Message);
 
-            return Created("/team/" + response.Result.Id, new
+            var team = response.Result as Team;
+            
+            return Created("/team/" + team.Id, new
             {
                 teamId = response.Result.Id,
-                inviteLink = "/invites/" + response.Result.InviteTokenSecret
+                inviteLink = "/invites/" + team.InviteTokenSecret
             });
         }
 
 
         [Authorize]
         [HttpPost("{teamId}/members")]
-        public async Task<IActionResult> AddUserToTeam(int teamId, [FromBody] AddUserToTeamVM model)
+        public async Task<IActionResult> AddUserToTeam(int teamId, [FromBody] AddUserToTeamBM model)
         {
             if (!ModelState.IsValid)
             {
@@ -97,9 +109,9 @@ namespace Quest.API.Controllers
             if (!response.Result)
                 return ApiError.ProblemDetails(HttpStatusCode.Forbidden, response.Message);
 
-            var team = await _mediator.Send(new GetTeamInfoQuery(teamId));
+            var team = await _mediator.Send(new GetParticipantInfoQuery(teamId));
             
-            return Ok(new TeamVM(team));
+            return Ok(new ParticipantRM(team));
         }
 
 
@@ -126,7 +138,7 @@ namespace Quest.API.Controllers
         {
             var userId = _userManager.GetUserId(User);
 
-            var response = await _mediator.Send(new RemoveTeamCommand(userId, teamId));
+            var response = await _mediator.Send(new RemoveParticipantCommand(userId, teamId));
 
             if (!response.Result)
                 return ApiError.ProblemDetails(HttpStatusCode.Forbidden, response.Message);
@@ -139,12 +151,12 @@ namespace Quest.API.Controllers
         [HttpPost("{teamId}/moderator/")]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> AssignModeratorToTeam(int teamId,
-            [FromBody]AssignModeratorToTeamVM model)
+            [FromBody]AssignModeratorToTeamBM model)
         {
             var userId = _userManager.GetUserId(User);
             
             var response = await _mediator.Send(
-                new AssignModeratorToTeamCommand(teamId, userId, model.ModeratorId));
+                new AssignModeratorToParticipantCommand(teamId, userId, model.ModeratorId));
 
             if (!response.Result)
                 return ApiError.ProblemDetails(HttpStatusCode.Forbidden, response.Message);
@@ -167,7 +179,7 @@ namespace Quest.API.Controllers
             if (response == null)
                 return NotFound();
 
-            return Ok(new TeamWithQuestAndModeratorVM(response));
+            return Ok(new ParticipantWithQuestAndModeratorRM(response));
         }
         
         [Authorize]
@@ -176,12 +188,12 @@ namespace Quest.API.Controllers
         public async Task<IActionResult> GetTeamModerator(int id)
         {
             var response = await _mediator.Send(
-                new GetTeamInfoQuery(id));
+                new GetParticipantInfoQuery(id));
 
             if (response?.Moderator == null)
                 return NotFound();
 
-            return Ok(new ModeratorVM(response.Moderator));
+            return Ok(new ModeratorRm(response.Moderator));
         }
         
          
@@ -193,15 +205,16 @@ namespace Quest.API.Controllers
             var userId = _userManager.GetUserId(User);
 
             var response = await _mediator.Send(
-                new GetTeamInfoQuery(id));
+                new GetParticipantInfoQuery(id));
 
             if (response == null)
                 return NotFound();
-
-            if (response.Members.All(x => x.UserId != userId))
+            var team = response as Team;
+            
+            if (team.Members.All(x => x.UserId != userId))
                 return ApiError.ProblemDetails(HttpStatusCode.Forbidden, "You are not a member of this team");
             
-            return Ok(response.InviteTokenSecret);
+            return Ok(team.InviteTokenSecret);
         }
     }
 }

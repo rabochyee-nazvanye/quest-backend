@@ -5,10 +5,10 @@ namespace Quest.Application.DTOs
 {
     public class QuestScoreboardDTO
     {
-        public QuestScoreboardDTO(IEnumerable<TeamResultDTO> teamResults)
+        public QuestScoreboardDTO(IEnumerable<ParticipantResultDTO> teamResults)
         {
-            TeamResults = teamResults.OrderBy(x => x.Place).ToList();
+            ParticipantResults = teamResults.OrderBy(x => x.Place).ToList();
         }
-        public List<TeamResultDTO> TeamResults { get; set; }
+        public List<ParticipantResultDTO> ParticipantResults { get; set; }
     }
 }

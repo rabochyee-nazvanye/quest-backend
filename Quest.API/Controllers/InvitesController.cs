@@ -10,13 +10,12 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Quest.API.Helpers.Errors;
-using Quest.API.ViewModels.Teams;
+using Quest.API.ResourceModels.Participants;
+using Quest.Application.Participants.Commands;
 using Quest.Application.Teams.Commands;
 using Quest.Application.Teams.Queries;
 using Quest.DAL.Data;
 using Quest.Domain.Models;
-
-// For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
 namespace Quest.API.Controllers
 {
@@ -58,7 +57,7 @@ namespace Quest.API.Controllers
             if (!result.Result)
                 return ApiError.ProblemDetails(HttpStatusCode.Forbidden, result.Message);
             
-            return Ok(new TeamVM(team));
+            return Ok(new ParticipantRM(team));
         }
     }
 }

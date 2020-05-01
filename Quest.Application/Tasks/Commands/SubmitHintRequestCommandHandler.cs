@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Quest.DAL.Data;
+using Quest.Domain.Interfaces;
 using Quest.Domain.Models;
 
 namespace Quest.Application.Tasks.Commands
@@ -31,10 +32,11 @@ namespace Quest.Application.Tasks.Commands
             var task = await _context.Tasks.Where(x => x.Id == request.TaskId)
                 .Include(x => x.TaskAttempts)
                 .Include(x => x.Quest)
-                    .ThenInclude(x => x.Teams)
-                        .ThenInclude(x => x.Members)
+                    .ThenInclude(x =>x.Participants)
+                        .ThenInclude(x => (x as Team).Members)
+                            .ThenInclude(x => x.User)
                 .Include(x => x.Quest)
-                    .ThenInclude(x => x.Teams)
+                    .ThenInclude(x => x.Participants)
                         .ThenInclude(x => x.UsedHints)
                 .Include(x => x.Hints)
                 .FirstOrDefaultAsync(cancellationToken);
@@ -42,13 +44,12 @@ namespace Quest.Application.Tasks.Commands
             if (task == null)
                 return BaseResponse.Failure<Hint>("Task was not found");
 
-            var team = task.Quest.Teams
-                .FirstOrDefault(x => x.Members.Any(m => m.UserId == request.UserId));
+            var participant = task.Quest.FindParticipant(request.UserId);
             
-            if (team == null)
+            if (participant == null)
                 return BaseResponse.Failure<Hint>("Team was not found");
 
-            if (team.Quest.GetQuestStatus() != QuestEntity.QuestStatus.InProgress)
+            if (!task.Quest.IsReadyToReceiveTaskAttempts())
                 return BaseResponse.Failure<Hint>("Quest is not in active state yet.");
 
             if (!task.Hints.Any() || request.HintNumber >= task.Hints.Count)
@@ -57,12 +58,12 @@ namespace Quest.Application.Tasks.Commands
             var orderedHints = task.Hints.OrderBy(x => x.Sorting).ToList();
             var requestedHint = orderedHints[request.HintNumber];
 
-            if (team.UsedHints.Any(x => x.HintId == requestedHint.Id))
+            if (participant.UsedHints.Any(x => x.HintId == requestedHint.Id))
                 return BaseResponse.Success(requestedHint, "Success");
 
-            team.UsedHints.Add(new TeamHint
+            participant.UsedHints.Add(new ParticipantHint
             {
-                TeamId = team.Id,
+                ParticipantId = participant.Id,
                 HintId = requestedHint.Id
             });
             

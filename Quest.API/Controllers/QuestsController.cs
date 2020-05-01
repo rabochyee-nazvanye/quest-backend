@@ -10,13 +10,17 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
+using Quest.API.BindingModels.Quests;
+using Quest.API.BindingModels.Tasks;
 using Quest.API.Helpers;
 using Quest.API.Helpers.Errors;
-using Quest.API.ViewModels.Quests;
-using Quest.API.ViewModels.Tasks;
-using Quest.API.ViewModels.Teams;
+using Quest.API.ResourceModels.Quests;
+using Quest.API.ResourceModels.Quests.Results;
+using Quest.API.ResourceModels.Tasks;
+using Quest.API.ResourceModels.Teams;
 using Quest.Application.Quests.Commands;
 using Quest.Application.Quests.Queries;
+using Quest.Application.Services;
 using Quest.Application.Tasks.Commands;
 using Quest.Application.Tasks.Queries;
 using Quest.Application.Teams.Queries;
@@ -24,20 +28,17 @@ using Quest.Application.Users.Queries;
 using Quest.DAL.Data;
 using Quest.Domain.Models;
 
-
 namespace Quest.API.Controllers
 {
     [ApiController]
     [Route("[controller]")]
     public class QuestsController : Controller
     {
-        private readonly Db _db;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IMediator _mediator;
 
-        public QuestsController(Db context, UserManager<ApplicationUser> userManager, IMediator mediator)
+        public QuestsController(UserManager<ApplicationUser> userManager, IMediator mediator)
         {
-            _db = context;
             _userManager = userManager;
             _mediator = mediator;
         }
@@ -47,7 +48,7 @@ namespace Quest.API.Controllers
         public async Task<IActionResult> Get()
         {
             var data = await _mediator.Send(new GetAllQuestsQuery());
-            return Ok(data.Select(x => new QuestWithTeamsAndAuthorVM(x)));
+            return Ok(data.Select(QuestRMFactory.CreateBasic));
         }
 
         [HttpGet("{id}")]
@@ -57,21 +58,21 @@ namespace Quest.API.Controllers
             var quest = await _mediator.Send(new GetQuestByIdQuery(id));
 
             if (quest == null)
-            {
                 return NotFound();
-            }
-            return Json(new QuestWithTeamsAndAuthorVM(quest));
+            
+            return Ok(QuestRMFactory.CreateDetailed(quest));
         }
 
         [Authorize]
         [HttpPost]
-        public async Task<IActionResult> Post(CreateQuestVM model)
+        [ExactQueryParam("teamScheduled")]
+        public async Task<IActionResult> CreateTeamScheduled(CreateTeamScheduledQuestBM model)
         {
             var userId = _userManager.GetUserId(User);
             if (!ModelState.IsValid)
                 return BadRequest();
 
-            var response = await _mediator.Send(new CreateQuestCommand
+            var createQuestArgs = new TeamScheduledConstructorArgs
             {
                 AuthorId = userId,
                 Description = model.Description,
@@ -81,13 +82,36 @@ namespace Quest.API.Controllers
                 StartDate = model.StartDate,
                 EndDate = model.EndDate,
                 MaxTeamSize = model.MaxTeamSize
-            });
-
+            };
+            var response = await _mediator.Send(new CreateQuestCommand(createQuestArgs));
             if (response.Result == null)
                 return ApiError.ProblemDetails(HttpStatusCode.Forbidden, response.Message);
 
             return Created("/quests/" + response.Result.Id, response.Result.Id);
         }
+        
+        [Authorize]
+        [HttpPost]
+        [ExactQueryParam("soloInfinite")]
+        public async Task<IActionResult> CreateSoloInfinite(CreateSoloInfiniteQuestBM model)
+        {
+            var userId = _userManager.GetUserId(User);
+            if (!ModelState.IsValid)
+                return BadRequest();
+
+            var createQuestArgs = new SoloInfiniteConstructorArgs{
+                AuthorId = userId,
+                Description = model.Description,
+                ImageUrl = model.ImageUrl,
+                Name = model.Name
+            };
+            var response = await _mediator.Send(new CreateQuestCommand(createQuestArgs));
+            if (response.Result == null)
+                return ApiError.ProblemDetails(HttpStatusCode.Forbidden, response.Message);
+
+            return Created("/quests/" + response.Result.Id, response.Result.Id);
+        }
+        
         
         [Authorize]
         [HttpGet("{id}/teams")]
@@ -113,7 +137,7 @@ namespace Quest.API.Controllers
             if (response.Result == null)
                 return ApiError.ProblemDetails(HttpStatusCode.Forbidden, response.Message);
 
-            return Ok(response.Result.Select(x => new TeamWithCaptainAndMembersVM(x)));
+            return Ok(response.Result.Select(x => new TeamWithCaptainAndMembersRM(x)));
         }
         
         [Authorize]
@@ -127,21 +151,17 @@ namespace Quest.API.Controllers
             if (response.Result == null)
                 return ApiError.ProblemDetails(HttpStatusCode.Forbidden, response.Message);
 
-            return Ok(response.Result.Select(x => new TaskVM(x)));
+            return Ok(response.Result.Select(x => new TaskWithStatusAndHintsRM(x)));
         }
         
         [Authorize]
         [HttpPost("{id}/tasks")]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> CreateTask(int id, [FromBody]CreateTaskVM model)
+        public async Task<IActionResult> CreateTask(int id, [FromBody]CreateTaskBM model)
         {
             if (!ModelState.IsValid)
                 return BadRequest();
             
-            //todo add proper verification for user priveleges later
-            var userId = _userManager.GetUserId(User);
-            var user = await _mediator.Send(new GetUserByIdQuery(userId));
-
             var response = await _mediator.Send(new CreateTaskCommand()
             {
                 CorrectAnswer =  model.CorrectAnswer,
@@ -169,7 +189,7 @@ namespace Quest.API.Controllers
             if (response.Result == null)
                 return ApiError.ProblemDetails(HttpStatusCode.Forbidden, response.Message);
 
-            return Ok(new QuestScoreboardVM(response.Result));
+            return Ok(new QuestScoreboardInvertedScoreRM(response.Result));
         }
         
         [Authorize]
@@ -183,7 +203,7 @@ namespace Quest.API.Controllers
             if (response.Result == null)
                 return ApiError.ProblemDetails(HttpStatusCode.Forbidden, response.Message);
 
-            return Ok(new QuestProgressboardVM(response.Result));
+            return Ok(new QuestProgressboardRM(response.Result));
         }
     }
 }

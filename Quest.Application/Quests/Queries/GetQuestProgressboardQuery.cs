@@ -3,7 +3,7 @@ using Quest.Application.DTOs;
 
 namespace Quest.Application.Quests.Queries
 {
-    public class GetQuestProgressboardQuery : IRequest<BaseResponse<QuestProgressboardDTO>>
+    public class GetQuestProgressboardQuery : IRequest<BaseResponse<QuestParticipantProgressAndTasksDTO>>
     {
         public GetQuestProgressboardQuery(string userId, int questId)
         {

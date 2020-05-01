@@ -23,8 +23,8 @@ namespace Quest.Application.Quests.Queries
         {
             return await _context.Quests
                 .Include(x => x.Author)
-                .Include(x => x.Teams)
-                .ThenInclude(x => x.Members)
+                .Include(x => x.Participants)
+                .ThenInclude(x => (x as Team).Members)
                 .ThenInclude(x => x.User)
                 .ToListAsync(cancellationToken: cancellationToken);
         }

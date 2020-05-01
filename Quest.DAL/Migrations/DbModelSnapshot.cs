@@ -242,6 +242,56 @@ namespace Quest.DAL.Migrations
                     b.ToTable("Hints");
                 });
 
+            modelBuilder.Entity("Quest.Domain.Models.Participant", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
+
+                    b.Property<string>("Discriminator")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("ModeratorId")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("text");
+
+                    b.Property<string>("PrincipalUserId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("QuestId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ModeratorId");
+
+                    b.HasIndex("QuestId");
+
+                    b.ToTable("Participants");
+
+                    b.HasDiscriminator<string>("Discriminator").HasValue("Participant");
+                });
+
+            modelBuilder.Entity("Quest.Domain.Models.ParticipantHint", b =>
+                {
+                    b.Property<int>("ParticipantId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("HintId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("ParticipantId", "HintId");
+
+                    b.HasIndex("HintId");
+
+                    b.ToTable("UsedParticipantHints");
+                });
+
             modelBuilder.Entity("Quest.Domain.Models.QuestEntity", b =>
                 {
                     b.Property<int>("Id")
@@ -255,32 +305,23 @@ namespace Quest.DAL.Migrations
                     b.Property<string>("Description")
                         .HasColumnType("text");
 
-                    b.Property<DateTime>("EndDate")
-                        .HasColumnType("timestamp without time zone");
+                    b.Property<string>("Discriminator")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<string>("ImageUrl")
                         .HasColumnType("text");
 
-                    b.Property<int>("MaxTeamSize")
-                        .HasColumnType("integer");
-
                     b.Property<string>("Name")
                         .HasColumnType("text");
-
-                    b.Property<DateTime>("RegistrationDeadline")
-                        .HasColumnType("timestamp without time zone");
-
-                    b.Property<bool>("ResultsAvailable")
-                        .HasColumnType("boolean");
-
-                    b.Property<DateTime>("StartDate")
-                        .HasColumnType("timestamp without time zone");
 
                     b.HasKey("Id");
 
                     b.HasIndex("AuthorId");
 
                     b.ToTable("Quests");
+
+                    b.HasDiscriminator<string>("Discriminator").HasValue("QuestEntity");
                 });
 
             modelBuilder.Entity("Quest.Domain.Models.TaskAttempt", b =>
@@ -292,6 +333,9 @@ namespace Quest.DAL.Migrations
 
                     b.Property<string>("AdminComment")
                         .HasColumnType("text");
+
+                    b.Property<int>("ParticipantId")
+                        .HasColumnType("integer");
 
                     b.Property<string>("PhotoUrl")
                         .HasColumnType("text");
@@ -305,9 +349,6 @@ namespace Quest.DAL.Migrations
                     b.Property<int>("TaskId")
                         .HasColumnType("integer");
 
-                    b.Property<int>("TeamId")
-                        .HasColumnType("integer");
-
                     b.Property<string>("Text")
                         .HasColumnType("text");
 
@@ -316,9 +357,9 @@ namespace Quest.DAL.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("TaskId");
+                    b.HasIndex("ParticipantId");
 
-                    b.HasIndex("TeamId");
+                    b.HasIndex("TaskId");
 
                     b.ToTable("TaskAttempts");
                 });
@@ -358,55 +399,6 @@ namespace Quest.DAL.Migrations
                     b.ToTable("Tasks");
                 });
 
-            modelBuilder.Entity("Quest.Domain.Models.Team", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
-
-                    b.Property<string>("CaptainUserId")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("InviteTokenSecret")
-                        .HasColumnType("text");
-
-                    b.Property<string>("ModeratorId")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Name")
-                        .HasColumnType("text");
-
-                    b.Property<int>("QuestId")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CaptainUserId");
-
-                    b.HasIndex("ModeratorId");
-
-                    b.HasIndex("QuestId");
-
-                    b.ToTable("Teams");
-                });
-
-            modelBuilder.Entity("Quest.Domain.Models.TeamHint", b =>
-                {
-                    b.Property<int>("TeamId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("HintId")
-                        .HasColumnType("integer");
-
-                    b.HasKey("TeamId", "HintId");
-
-                    b.HasIndex("HintId");
-
-                    b.ToTable("UsedTeamHints");
-                });
-
             modelBuilder.Entity("Quest.Domain.Models.TeamUser", b =>
                 {
                     b.Property<int>("TeamId")
@@ -420,6 +412,62 @@ namespace Quest.DAL.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("TeamUsers");
+                });
+
+            modelBuilder.Entity("Quest.Domain.Models.SoloPlayer", b =>
+                {
+                    b.HasBaseType("Quest.Domain.Models.Participant");
+
+                    b.HasIndex("PrincipalUserId");
+
+                    b.HasDiscriminator().HasValue("SoloPlayer");
+                });
+
+            modelBuilder.Entity("Quest.Domain.Models.Team", b =>
+                {
+                    b.HasBaseType("Quest.Domain.Models.Participant");
+
+                    b.Property<string>("ApplicationUserId")
+                        .HasColumnType("text");
+
+                    b.Property<string>("InviteTokenSecret")
+                        .HasColumnType("text");
+
+                    b.HasIndex("ApplicationUserId");
+
+                    b.HasIndex("PrincipalUserId")
+                        .HasName("IX_Participants_PrincipalUserId1");
+
+                    b.HasDiscriminator().HasValue("Team");
+                });
+
+            modelBuilder.Entity("Quest.Domain.Models.SoloInfiniteQuest", b =>
+                {
+                    b.HasBaseType("Quest.Domain.Models.QuestEntity");
+
+                    b.HasDiscriminator().HasValue("SoloInfiniteQuest");
+                });
+
+            modelBuilder.Entity("Quest.Domain.Models.TeamScheduledQuest", b =>
+                {
+                    b.HasBaseType("Quest.Domain.Models.QuestEntity");
+
+                    b.Property<DateTime>("EndDate")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<int>("MaxTeamSize")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("RegistrationDeadline")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<bool>("ResultsAvailable")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime>("StartDate")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.HasDiscriminator().HasValue("TeamScheduledQuest");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -482,6 +530,34 @@ namespace Quest.DAL.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("Quest.Domain.Models.Participant", b =>
+                {
+                    b.HasOne("Quest.Domain.Models.ApplicationUser", "Moderator")
+                        .WithMany()
+                        .HasForeignKey("ModeratorId");
+
+                    b.HasOne("Quest.Domain.Models.QuestEntity", "Quest")
+                        .WithMany("Participants")
+                        .HasForeignKey("QuestId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Quest.Domain.Models.ParticipantHint", b =>
+                {
+                    b.HasOne("Quest.Domain.Models.Hint", "Hint")
+                        .WithMany("UsedTeamHints")
+                        .HasForeignKey("HintId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Quest.Domain.Models.Participant", "Participant")
+                        .WithMany("UsedHints")
+                        .HasForeignKey("ParticipantId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("Quest.Domain.Models.QuestEntity", b =>
                 {
                     b.HasOne("Quest.Domain.Models.ApplicationUser", "Author")
@@ -491,15 +567,15 @@ namespace Quest.DAL.Migrations
 
             modelBuilder.Entity("Quest.Domain.Models.TaskAttempt", b =>
                 {
-                    b.HasOne("Quest.Domain.Models.TaskEntity", "TaskEntity")
+                    b.HasOne("Quest.Domain.Models.Participant", "Participant")
                         .WithMany("TaskAttempts")
-                        .HasForeignKey("TaskId")
+                        .HasForeignKey("ParticipantId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Quest.Domain.Models.Team", "Team")
+                    b.HasOne("Quest.Domain.Models.TaskEntity", "TaskEntity")
                         .WithMany("TaskAttempts")
-                        .HasForeignKey("TeamId")
+                        .HasForeignKey("TaskId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
@@ -509,40 +585,6 @@ namespace Quest.DAL.Migrations
                     b.HasOne("Quest.Domain.Models.QuestEntity", "Quest")
                         .WithMany("Tasks")
                         .HasForeignKey("QuestId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("Quest.Domain.Models.Team", b =>
-                {
-                    b.HasOne("Quest.Domain.Models.ApplicationUser", "Captain")
-                        .WithMany("OwnedTeams")
-                        .HasForeignKey("CaptainUserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Quest.Domain.Models.ApplicationUser", "Moderator")
-                        .WithMany("ModeratedTeams")
-                        .HasForeignKey("ModeratorId");
-
-                    b.HasOne("Quest.Domain.Models.QuestEntity", "Quest")
-                        .WithMany("Teams")
-                        .HasForeignKey("QuestId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("Quest.Domain.Models.TeamHint", b =>
-                {
-                    b.HasOne("Quest.Domain.Models.Hint", "Hint")
-                        .WithMany("UsedTeamHints")
-                        .HasForeignKey("HintId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Quest.Domain.Models.Team", "Team")
-                        .WithMany("UsedHints")
-                        .HasForeignKey("TeamId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
@@ -558,6 +600,29 @@ namespace Quest.DAL.Migrations
                     b.HasOne("Quest.Domain.Models.ApplicationUser", "User")
                         .WithMany("JoinedTeams")
                         .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Quest.Domain.Models.SoloPlayer", b =>
+                {
+                    b.HasOne("Quest.Domain.Models.ApplicationUser", "Principal")
+                        .WithMany()
+                        .HasForeignKey("PrincipalUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Quest.Domain.Models.Team", b =>
+                {
+                    b.HasOne("Quest.Domain.Models.ApplicationUser", null)
+                        .WithMany("ModeratedTeams")
+                        .HasForeignKey("ApplicationUserId");
+
+                    b.HasOne("Quest.Domain.Models.ApplicationUser", "Principal")
+                        .WithMany("OwnedTeams")
+                        .HasForeignKey("PrincipalUserId")
+                        .HasConstraintName("FK_Participants_AspNetUsers_PrincipalUserId1")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });

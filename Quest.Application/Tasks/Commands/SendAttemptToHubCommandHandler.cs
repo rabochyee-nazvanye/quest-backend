@@ -17,10 +17,10 @@ namespace Quest.Application.Tasks.Commands
 
         public async Task<BaseResponse<bool>> Handle(SendAttemptToHubCommand request, CancellationToken cancellationToken)
         {
-            if (request.TaskAttempt.Team.Moderator == null)
+            if (request.TaskAttempt.Participant.Moderator == null)
                 return BaseResponse.Failure<bool>( $"{request.TaskAttempt.SubmitTime:MM/dd/yyyy H:mm} UTC: No moderator assigned");
             
-            if (request.TaskAttempt.Team.Moderator.TelegramId == 0)
+            if (request.TaskAttempt.Participant.Moderator.TelegramId == 0)
                 return BaseResponse.Failure<bool>( 
                     $"{request.TaskAttempt.SubmitTime:MM/dd/yyyy H:mm} UTC: Moderator doesn't have telegram id assigned");
             

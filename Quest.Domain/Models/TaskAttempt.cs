@@ -9,22 +9,19 @@ namespace Quest.Domain.Models
     {
         [Key]
         public int Id { get; set; }
-
         public int TaskId { get; set; }
         [ForeignKey("TaskId")]
-        public TaskEntity TaskEntity { get; set; }
-        
-        public int TeamId { get; set; }
-        [ForeignKey("TeamId")]
-        public Team Team { get; set; }
-
+        public TaskEntity TaskEntity { get; set; } 
         public string Text { get; set; }
         public string PhotoUrl { get; set; }
         public int UsedHintsCount { get; set; }
-        
         public TaskAttemptStatus Status { get; set; }
-        
         public string AdminComment { get; set; }
         public DateTime SubmitTime { get; set; }
+        
+        public int ParticipantId { get; set; }
+        
+        [ForeignKey("ParticipantId")]
+        public Participant Participant { get; set; }
     }
 }

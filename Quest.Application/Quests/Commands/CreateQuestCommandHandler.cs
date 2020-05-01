@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Quest.Application.Services;
 using Quest.DAL.Data;
 using Quest.Domain.Models;
 
@@ -22,35 +23,12 @@ namespace Quest.Application.Quests.Commands
 
         public async Task<BaseResponse<QuestEntity>> Handle(CreateQuestCommand request, CancellationToken cancellationToken)
         {
-            var author = await _context.Users.FirstOrDefaultAsync(x =>
-                x.Id == request.AuthorId, cancellationToken: cancellationToken);
-            if (author == null)
-                return BaseResponse.Failure<QuestEntity>("User not found.");
-            
-            if (request.StartDate < DateTime.Now || request.EndDate < DateTime.Now ||
-                request.RegistrationDeadline < DateTime.Now)
-                return BaseResponse.Failure<QuestEntity>("Quest dates can't be in the past.");
+            var validationResult = request.QuestConstructorArgs.Validate();
 
-            if (request.StartDate > request.EndDate)
-                return BaseResponse.Failure<QuestEntity>("Quest start should be sooner than end.");
-            
-            if (request.RegistrationDeadline > request.StartDate)
-                return BaseResponse.Failure<QuestEntity>("Quest register deadline should be sooner than start.");
+            if (!validationResult.Result)
+                return BaseResponse.Failure<QuestEntity>(validationResult.Message);
 
-            if (request.MaxTeamSize < 0)
-                return BaseResponse.Failure<QuestEntity>("Max team size should be non-negative integer.");
-
-            var quest = new QuestEntity
-            {
-                Name = request.Name,
-                Description = request.Description,
-                ImageUrl = request.ImageUrl,
-                StartDate = request.StartDate,
-                EndDate = request.EndDate,
-                RegistrationDeadline = request.RegistrationDeadline,
-                AuthorId = author.Id,
-                MaxTeamSize = request.MaxTeamSize != 0 ? request.MaxTeamSize : DefaultTeamSize
-            };
+            var quest = QuestFactory.Create(request.QuestConstructorArgs);
 
             await _context.Quests.AddAsync(quest, cancellationToken);
             await _context.SaveChangesAsync(cancellationToken);
