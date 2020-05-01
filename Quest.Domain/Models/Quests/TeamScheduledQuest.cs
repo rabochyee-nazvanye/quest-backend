@@ -1,38 +1,21 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.Globalization;
-using System.Text;
+using System.Linq;
+using Quest.Domain.Interfaces;
 
 namespace Quest.Domain.Models
 {
-    public class QuestEntity
+    public class TeamScheduledQuest: QuestEntity, ITeamQuest, IScheduledQuest
     {
-        [Key]
-        public int Id { get; set; }
-
-        public string Name { get; set; }
-        public string Description { get; set; }
-        public string ImageUrl { get; set; }
         public DateTime RegistrationDeadline { get; set; }
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
-
-        public string AuthorId { get; set; }
-        [ForeignKey("AuthorId")]
-        public ApplicationUser Author { get; set; }
-
-        public List<TaskEntity> Tasks { get; set; }
-        
         public int MaxTeamSize { get; set; }
-
-        public List<Team> Teams { get; set; }
-        
+        public List<Team> GetTeams() => Participants.Select(x => x as Team).ToList();
         public bool ResultsAvailable { get; set; }
-
         public QuestStatus GetQuestStatus()
         {
+            
             if (ResultsAvailable)
                 return QuestStatus.ResultsAvailable;
             
@@ -58,6 +41,18 @@ namespace Quest.Domain.Models
             InProgress = 2,
             Finished = 3,
             ResultsAvailable = 4
+        }
+
+        public override bool IsReadyToReceiveTaskAttempts()
+        {
+            return GetQuestStatus() == QuestStatus.InProgress;
+        }
+
+        public override bool RegistrationIsAvailable() => RegistrationDeadline < DateTime.Now;
+
+        public override Participant FindParticipant(string userId)
+        {
+            return GetTeams().FirstOrDefault(x => x.Members.Any(m => m.UserId == userId));
         }
     }
 }
