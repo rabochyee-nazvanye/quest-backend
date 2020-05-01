@@ -14,6 +14,7 @@ using Quest.API.BindingModels.Quests;
 using Quest.API.BindingModels.Tasks;
 using Quest.API.Helpers;
 using Quest.API.Helpers.Errors;
+using Quest.API.ResourceModels.Participants;
 using Quest.API.ResourceModels.Quests;
 using Quest.API.ResourceModels.Quests.Results;
 using Quest.API.ResourceModels.Tasks;
@@ -114,7 +115,7 @@ namespace Quest.API.Controllers
         
         
         [Authorize]
-        [HttpGet("{id}/teams")]
+        [HttpGet("{id}/participants")]
         [ExactQueryParam("members")]
         public async Task<IActionResult> GetQuestTeamByUserId(int id, [FromQuery]string members)
         {
@@ -132,12 +133,12 @@ namespace Quest.API.Controllers
             if (!memberIds.Any())
                 return BadRequest();
             
-            var response = await _mediator.Send(new GetTeamByUserAndQuestQuery(id, memberIds));
+            var response = await _mediator.Send(new GetParticipantsByUserAndQuestQuery(id, memberIds));
 
             if (response.Result == null)
                 return ApiError.ProblemDetails(HttpStatusCode.Forbidden, response.Message);
 
-            return Ok(response.Result.Select(x => new TeamWithCaptainAndMembersRM(x)));
+            return Ok(response.Result.Select(ParticipantRMFactory.Create));
         }
         
         [Authorize]
