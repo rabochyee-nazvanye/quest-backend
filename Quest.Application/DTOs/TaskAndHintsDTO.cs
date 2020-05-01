@@ -4,9 +4,9 @@ using Quest.Domain.Models;
 
 namespace Quest.Application.DTOs
 {
-    public class TaskStatusDTO
+    public class TaskAndHintsDTO
     {
-        public TaskStatusDTO(TaskEntity task, List<Hint> usedHints)
+        public TaskAndHintsDTO(TaskEntity task, List<Hint> usedHints)
         {
             Task = task;
             UsedHints = usedHints;

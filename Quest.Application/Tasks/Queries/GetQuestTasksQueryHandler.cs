@@ -12,7 +12,7 @@ using Quest.Domain.Models;
 
 namespace Quest.Application.Tasks.Queries
 {
-    public class GetQuestTasksQueryHandler : IRequestHandler<GetQuestTasksQuery, BaseResponse<List<TaskStatusDTO>>>
+    public class GetQuestTasksQueryHandler : IRequestHandler<GetQuestTasksQuery, BaseResponse<List<TaskAndHintsDTO>>>
     {
         private readonly Db _context;
 
@@ -21,7 +21,7 @@ namespace Quest.Application.Tasks.Queries
             _context = context;
         }
 
-        public async Task<BaseResponse<List<TaskStatusDTO>>> Handle(GetQuestTasksQuery request,
+        public async Task<BaseResponse<List<TaskAndHintsDTO>>> Handle(GetQuestTasksQuery request,
             CancellationToken cancellationToken)
         {
             var quest = await _context.Quests
@@ -37,21 +37,21 @@ namespace Quest.Application.Tasks.Queries
                 cancellationToken: cancellationToken);
 
             if (quest == null)
-                return BaseResponse.Failure<List<TaskStatusDTO>>("Could not find quest with provided id.");
+                return BaseResponse.Failure<List<TaskAndHintsDTO>>("Could not find quest with provided id.");
 
             if (!quest.IsReadyToReceiveTaskAttempts())
-                return BaseResponse.Failure<List<TaskStatusDTO>>("Quest is not in active state yet.");
+                return BaseResponse.Failure<List<TaskAndHintsDTO>>("Quest is not in active state yet.");
 
             var userExists = await _context.Users.AnyAsync(x => x.Id == request.UserId,
                 cancellationToken: cancellationToken);
 
             if (!userExists)
-                return BaseResponse.Failure<List<TaskStatusDTO>>("Internal: request user does not exist.");
+                return BaseResponse.Failure<List<TaskAndHintsDTO>>("Internal: request user does not exist.");
 
             var participant = quest.FindParticipant(request.UserId);
             
             if (participant == null)
-                return BaseResponse.Failure<List<TaskStatusDTO>>("Could not find participant of this user.");
+                return BaseResponse.Failure<List<TaskAndHintsDTO>>("Could not find participant of this user.");
 
             var tasks = await _context.Tasks
                 .Where(x => x.QuestId == request.QuestId)
@@ -71,7 +71,7 @@ namespace Quest.Application.Tasks.Queries
                         .Where(h => h.Hint.TaskId == x.Id)
                         .Select(participantHint => participantHint.Hint)
                         .ToList();
-                    return new TaskStatusDTO(x, usedHints);
+                    return new TaskAndHintsDTO(x, usedHints);
                 })
                 .ToList();
 

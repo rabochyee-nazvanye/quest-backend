@@ -13,7 +13,7 @@ using Quest.Domain.Models;
 
 namespace Quest.Application.Tasks.Commands
 {
-    public class SubmitTaskAttemptCommandHandler : IRequestHandler<SubmitTaskAttemptCommand, BaseResponse<TaskStatusDTO>>
+    public class SubmitTaskAttemptCommandHandler : IRequestHandler<SubmitTaskAttemptCommand, BaseResponse<TaskAndHintsDTO>>
     {
         private readonly Db _context;
         private readonly IMediator _mediator;
@@ -65,13 +65,13 @@ namespace Quest.Application.Tasks.Commands
         }
         
         
-        public async Task<BaseResponse<TaskStatusDTO>> Handle(SubmitTaskAttemptCommand request, CancellationToken cancellationToken)
+        public async Task<BaseResponse<TaskAndHintsDTO>> Handle(SubmitTaskAttemptCommand request, CancellationToken cancellationToken)
         {
             var userExists = await _context.Users.AnyAsync(x => x.Id == request.UserId,
                 cancellationToken: cancellationToken);
 
             if (!userExists)
-                return BaseResponse.Failure<TaskStatusDTO>("Internal: user not found");
+                return BaseResponse.Failure<TaskAndHintsDTO>("Internal: user not found");
             
             var task = await _context.Tasks.Where(x => x.Id == request.TaskId)
                 .Include(x => x.TaskAttempts)
@@ -89,15 +89,15 @@ namespace Quest.Application.Tasks.Commands
                 .FirstOrDefaultAsync(cancellationToken);
 
             if (task == null)
-                return BaseResponse.Failure<TaskStatusDTO>("Task was not found");
+                return BaseResponse.Failure<TaskAndHintsDTO>("Task was not found");
 
             var participant = task.Quest.FindParticipant(request.UserId);
             
             if (participant == null)
-                return BaseResponse.Failure<TaskStatusDTO>("User is not participating in this quest");
+                return BaseResponse.Failure<TaskAndHintsDTO>("User is not participating in this quest");
 
             if (!task.Quest.IsReadyToReceiveTaskAttempts())
-                return BaseResponse.Failure<TaskStatusDTO>("Quest is not in active state yet.");
+                return BaseResponse.Failure<TaskAndHintsDTO>("Quest is not in active state yet.");
 
             var usedHints = participant.UsedHints
                 .Where(x => x.Hint.TaskId == task.Id)
@@ -113,7 +113,7 @@ namespace Quest.Application.Tasks.Commands
                 .FirstOrDefaultAsync(cancellationToken);
 
             
-            return BaseResponse.Success(new TaskStatusDTO(updatedTask, usedHints), "Success");
+            return BaseResponse.Success(new TaskAndHintsDTO(updatedTask, usedHints), "Success");
         }
     }
 }
