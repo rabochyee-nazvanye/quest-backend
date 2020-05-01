@@ -10,11 +10,14 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
+using Quest.API.BindingModels.Quests;
+using Quest.API.BindingModels.Tasks;
 using Quest.API.Helpers;
 using Quest.API.Helpers.Errors;
-using Quest.API.ViewModels.Quests;
-using Quest.API.ViewModels.Tasks;
-using Quest.API.ViewModels.Teams;
+using Quest.API.ResourceModels.Quests;
+using Quest.API.ResourceModels.Quests.Results;
+using Quest.API.ResourceModels.Tasks;
+using Quest.API.ResourceModels.Teams;
 using Quest.Application.Quests.Commands;
 using Quest.Application.Quests.Queries;
 using Quest.Application.Services;
@@ -45,7 +48,7 @@ namespace Quest.API.Controllers
         public async Task<IActionResult> Get()
         {
             var data = await _mediator.Send(new GetAllQuestsQuery());
-            return Ok(data.Select(QuestDTOFactory.CreateBasic));
+            return Ok(data.Select(QuestRMFactory.CreateBasic));
         }
 
         [HttpGet("{id}")]
@@ -57,13 +60,13 @@ namespace Quest.API.Controllers
             if (quest == null)
                 return NotFound();
             
-            return Ok(QuestDTOFactory.CreateDetailed(quest));
+            return Ok(QuestRMFactory.CreateDetailed(quest));
         }
 
         [Authorize]
         [HttpPost]
         [ExactQueryParam("teamScheduled")]
-        public async Task<IActionResult> CreateTeamScheduled(CreateTeamScheduledQuestDTO model)
+        public async Task<IActionResult> CreateTeamScheduled(CreateTeamScheduledQuestBM model)
         {
             var userId = _userManager.GetUserId(User);
             if (!ModelState.IsValid)
@@ -90,7 +93,7 @@ namespace Quest.API.Controllers
         [Authorize]
         [HttpPost]
         [ExactQueryParam("soloInfinite")]
-        public async Task<IActionResult> CreateSoloInfinite(CreateSoloInfiniteQuestDTO model)
+        public async Task<IActionResult> CreateSoloInfinite(CreateSoloInfiniteQuestBM model)
         {
             var userId = _userManager.GetUserId(User);
             if (!ModelState.IsValid)
@@ -134,7 +137,7 @@ namespace Quest.API.Controllers
             if (response.Result == null)
                 return ApiError.ProblemDetails(HttpStatusCode.Forbidden, response.Message);
 
-            return Ok(response.Result.Select(x => new TeamWithCaptainAndMembersDTO(x)));
+            return Ok(response.Result.Select(x => new TeamWithCaptainAndMembersRM(x)));
         }
         
         [Authorize]
@@ -148,13 +151,13 @@ namespace Quest.API.Controllers
             if (response.Result == null)
                 return ApiError.ProblemDetails(HttpStatusCode.Forbidden, response.Message);
 
-            return Ok(response.Result.Select(x => new TaskVM(x)));
+            return Ok(response.Result.Select(x => new TaskWithStatusAndHintsRM(x)));
         }
         
         [Authorize]
         [HttpPost("{id}/tasks")]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> CreateTask(int id, [FromBody]CreateTaskVM model)
+        public async Task<IActionResult> CreateTask(int id, [FromBody]CreateTaskBM model)
         {
             if (!ModelState.IsValid)
                 return BadRequest();
@@ -186,7 +189,7 @@ namespace Quest.API.Controllers
             if (response.Result == null)
                 return ApiError.ProblemDetails(HttpStatusCode.Forbidden, response.Message);
 
-            return Ok(new QuestScoreboardInvertedScoreDTO(response.Result));
+            return Ok(new QuestScoreboardInvertedScoreRM(response.Result));
         }
         
         [Authorize]
@@ -200,7 +203,7 @@ namespace Quest.API.Controllers
             if (response.Result == null)
                 return ApiError.ProblemDetails(HttpStatusCode.Forbidden, response.Message);
 
-            return Ok(new QuestProgressboardDTO(response.Result));
+            return Ok(new QuestProgressboardRM(response.Result));
         }
     }
 }

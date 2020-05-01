@@ -13,11 +13,11 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Primitives;
 using Microsoft.IdentityModel.Tokens;
+using Quest.API.BindingModels.Sessions;
 using Quest.API.Helpers;
 using Quest.API.Helpers.Errors;
+using Quest.API.ResourceModels.Users;
 using Quest.API.Services;
-using Quest.API.ViewModels.Sessions;
-using Quest.API.ViewModels.Users;
 using Quest.Application.Users.Queries;
 using Quest.DAL.Data;
 using Quest.Domain.Models;
@@ -47,7 +47,7 @@ namespace Quest.API.Controllers
         
         [AllowAnonymous]
         [HttpPost]
-        public async Task<IActionResult> Login([FromBody]LoginVM login)
+        public async Task<IActionResult> Login([FromBody]LoginBM login)
         {
             if (!ModelState.IsValid)
                 return BadRequest();
@@ -81,7 +81,7 @@ namespace Quest.API.Controllers
                     "Failed to load user details");
             }
 
-            return Ok(new UserDTO(user));
+            return Ok(new UserRM(user));
         }
     }
 }
