@@ -1,6 +1,6 @@
 namespace Quest.Application.DTOs
 {
-    public class TeamResultDTO
+    public class ParticipantResultDTO
     {
         public string Name { get; set; }
         public int Score { get; set; }

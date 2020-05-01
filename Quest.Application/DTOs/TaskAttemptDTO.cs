@@ -9,11 +9,11 @@ namespace Quest.Application.DTOs
             Id = taskAttempt.Id;
             TaskId = taskAttempt.TaskId;
             TaskName = $"{taskAttempt.TaskEntity.Group} / {taskAttempt.TaskEntity.Name}" ;
-            TeamId = taskAttempt.TeamId;
-            TeamName = taskAttempt.Team.Name;
+            ParticipantId = taskAttempt.ParticipantId;
+            ParticipantName = taskAttempt.Participant.Name;
             Text = taskAttempt.Text;
-            ModeratorId = taskAttempt.Team.Moderator.Id;
-            ModeratorTelegramId = taskAttempt.Team.Moderator.TelegramId;
+            ModeratorId = taskAttempt.Participant.Moderator.Id;
+            ModeratorTelegramId = taskAttempt.Participant.Moderator.TelegramId;
             CorrectAnswerText = taskAttempt.TaskEntity.CorrectAnswer;
         }
         public int Id { get; set; }
@@ -21,8 +21,8 @@ namespace Quest.Application.DTOs
         public int TaskId { get; set; }
         public string TaskName { get; set; }
         
-        public int TeamId { get; set; }
-        public string TeamName { get; set; }
+        public int ParticipantId { get; set; }
+        public string ParticipantName { get; set; }
 
         public string Text { get; set; }
         public int ModeratorTelegramId { get; set; }
