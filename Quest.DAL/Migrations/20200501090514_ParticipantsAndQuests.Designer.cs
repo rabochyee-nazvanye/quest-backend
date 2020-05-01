@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Quest.DAL.Data;
@@ -9,9 +10,10 @@ using Quest.DAL.Data;
 namespace Quest.DAL.Migrations
 {
     [DbContext(typeof(Db))]
-    partial class DbModelSnapshot : ModelSnapshot
+    [Migration("20200501090514_ParticipantsAndQuests")]
+    partial class ParticipantsAndQuests
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -418,7 +420,12 @@ namespace Quest.DAL.Migrations
                 {
                     b.HasBaseType("Quest.Domain.Models.Participant");
 
+                    b.Property<int?>("SoloInfiniteQuestId")
+                        .HasColumnType("integer");
+
                     b.HasIndex("PrincipalUserId");
+
+                    b.HasIndex("SoloInfiniteQuestId");
 
                     b.HasDiscriminator().HasValue("SoloPlayer");
                 });
@@ -433,10 +440,15 @@ namespace Quest.DAL.Migrations
                     b.Property<string>("InviteTokenSecret")
                         .HasColumnType("text");
 
+                    b.Property<int?>("TeamScheduledQuestId")
+                        .HasColumnType("integer");
+
                     b.HasIndex("ApplicationUserId");
 
                     b.HasIndex("PrincipalUserId")
                         .HasName("IX_Participants_PrincipalUserId1");
+
+                    b.HasIndex("TeamScheduledQuestId");
 
                     b.HasDiscriminator().HasValue("Team");
                 });
@@ -611,6 +623,10 @@ namespace Quest.DAL.Migrations
                         .HasForeignKey("PrincipalUserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.HasOne("Quest.Domain.Models.SoloInfiniteQuest", null)
+                        .WithMany("SoloPlayers")
+                        .HasForeignKey("SoloInfiniteQuestId");
                 });
 
             modelBuilder.Entity("Quest.Domain.Models.Team", b =>
@@ -625,6 +641,10 @@ namespace Quest.DAL.Migrations
                         .HasConstraintName("FK_Participants_AspNetUsers_PrincipalUserId1")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.HasOne("Quest.Domain.Models.TeamScheduledQuest", null)
+                        .WithMany("Teams")
+                        .HasForeignKey("TeamScheduledQuestId");
                 });
 #pragma warning restore 612, 618
         }

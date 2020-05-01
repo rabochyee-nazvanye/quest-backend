@@ -13,15 +13,31 @@ namespace Quest.DAL.Data
         }
 
         public DbSet<QuestEntity> Quests { get; set; }
+        public DbSet<SoloInfiniteQuest> SingleInfiniteQuests { get; set; }
+        public DbSet<TeamScheduledQuest> TeamScheduledQuests { get; set; }
         public DbSet<Team> Teams { get; set; }
+        public DbSet<Participant> Participants { get; set; }
         public DbSet<TeamUser> TeamUsers { get; set; }
         public DbSet<TaskEntity> Tasks { get; set; }
-        public DbSet<Hint> Hints { get; set; }
-        public DbSet<TeamHint> UsedTeamHints { get; set; }
-        public DbSet<TaskAttempt> TaskAttempts { get; set; }
         
+        public DbSet<Hint> Hints { get; set; }
+        public DbSet<ParticipantHint> UsedParticipantHints { get; set; }
+        public DbSet<TaskAttempt> TaskAttempts { get; set; }
+    
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            //
+            // Inheritance explicit declaration for TPH
+            //
+            modelBuilder.Entity<SoloPlayer>().HasBaseType<Participant>();
+            modelBuilder.Entity<Team>().HasBaseType<Participant>();
+            
+            modelBuilder.Entity<SoloInfiniteQuest>().HasBaseType<QuestEntity>();
+            modelBuilder.Entity<TeamScheduledQuest>().HasBaseType<QuestEntity>();
+            
+            //
+            // One-To-Many, Many-To-Many relationships
+            //
             modelBuilder.Entity<TeamUser>()
                 .HasKey(k => new { k.TeamId, k.UserId });
 
@@ -37,31 +53,31 @@ namespace Quest.DAL.Data
                 .HasForeignKey(u => u.UserId)
                 .IsRequired();
             
-            modelBuilder.Entity<TeamHint>()
-                .HasKey(k => new { k.TeamId, k.HintId });
+            modelBuilder.Entity<ParticipantHint>()
+                .HasKey(k => new { k.ParticipantId, k.HintId });
 
-            modelBuilder.Entity<TeamHint>()
-                .HasOne(u => u.Team)
+            modelBuilder.Entity<ParticipantHint>()
+                .HasOne(u => u.Participant)
                 .WithMany(m => m.UsedHints)
-                .HasForeignKey(u => u.TeamId)
+                .HasForeignKey(u => u.ParticipantId)
                 .IsRequired();
 
-            modelBuilder.Entity<TeamHint>()
+            modelBuilder.Entity<ParticipantHint>()
                 .HasOne(u => u.Hint)
                 .WithMany(m => m.UsedTeamHints)
                 .HasForeignKey(u => u.HintId)
                 .IsRequired();
 
-            modelBuilder.Entity<Team>()
+            modelBuilder.Entity<Participant>()
                 .HasOne(x => x.Quest)
-                .WithMany(x => x.Teams)
+                .WithMany(x => x.Participants)
                 .HasForeignKey(x => x.QuestId)
                 .IsRequired();
 
             modelBuilder.Entity<Team>()
-                .HasOne(x => x.Captain)
+                .HasOne(x => x.Principal)
                 .WithMany(x => x.OwnedTeams)
-                .HasForeignKey(x => x.CaptainUserId)
+                .HasForeignKey(x => x.PrincipalUserId)
                 .IsRequired();
 
             base.OnModelCreating(modelBuilder);
