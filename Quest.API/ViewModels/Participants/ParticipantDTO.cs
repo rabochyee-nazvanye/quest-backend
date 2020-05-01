@@ -6,9 +6,9 @@ using Quest.Domain.Models;
 
 namespace Quest.API.ViewModels.Teams
 {
-    public class TeamVM
+    public class ParticipantDTO
     {
-        public TeamVM(Team row)
+        public ParticipantDTO(Participant row)
         {
             Id = row.Id;
             Name = row.Name;

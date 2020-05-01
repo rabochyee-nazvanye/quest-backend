@@ -45,7 +45,7 @@ namespace Quest.API.Controllers
         public async Task<IActionResult> Get()
         {
             var data = await _mediator.Send(new GetAllQuestsQuery());
-            return Ok(data.Select(QuestDTOFactory.Create));
+            return Ok(data.Select(QuestDTOFactory.CreateBasic));
         }
 
         [HttpGet("{id}")]
@@ -57,7 +57,7 @@ namespace Quest.API.Controllers
             if (quest == null)
                 return NotFound();
             
-            return Ok(QuestDTOFactory.Create(quest));
+            return Ok(QuestDTOFactory.CreateDetailed(quest));
         }
 
         [Authorize]

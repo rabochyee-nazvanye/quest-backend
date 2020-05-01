@@ -5,7 +5,7 @@ using Quest.Domain.Models;
 
 namespace Quest.API.ViewModels.Teams
 {
-    public class TeamWithCaptainAndMembersDTO : TeamVM
+    public class TeamWithCaptainAndMembersDTO : ParticipantDTO
     {
         public TeamWithCaptainAndMembersDTO(Team row) : base(row)
         {

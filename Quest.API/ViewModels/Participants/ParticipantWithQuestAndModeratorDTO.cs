@@ -8,9 +8,9 @@ using Quest.Domain.Models;
 
 namespace Quest.API.ViewModels.Teams
 {
-    public class TeamWithQuestAndModeratorVM : TeamVM
+    public class ParticipantWithQuestAndModeratorDTO : ParticipantDTO
     {
-        public TeamWithQuestAndModeratorVM(Team row) : base(row)
+        public ParticipantWithQuestAndModeratorDTO(Participant row) : base(row)
         {
             Quest = new QuestDTO(row.Quest);
             if (row.Moderator != null)

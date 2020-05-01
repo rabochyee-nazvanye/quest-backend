@@ -57,7 +57,7 @@ namespace Quest.API.Controllers
             if (!result.Result)
                 return ApiError.ProblemDetails(HttpStatusCode.Forbidden, result.Message);
             
-            return Ok(new TeamVM(team));
+            return Ok(new ParticipantDTO(team));
         }
     }
 }

@@ -109,7 +109,7 @@ namespace Quest.API.Controllers
 
             var team = await _mediator.Send(new GetTeamInfoQuery(teamId));
             
-            return Ok(new TeamVM(team));
+            return Ok(new ParticipantDTO(team));
         }
 
 
@@ -177,7 +177,7 @@ namespace Quest.API.Controllers
             if (response == null)
                 return NotFound();
 
-            return Ok(new TeamWithQuestAndModeratorVM(response));
+            return Ok(new ParticipantWithQuestAndModeratorDTO(response));
         }
         
         [Authorize]
