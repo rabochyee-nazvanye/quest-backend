@@ -23,7 +23,7 @@ namespace Quest.Application.Services
                         MaxTeamSize = args.MaxTeamSize
                     };
                 case SoloInfiniteConstructorArgs args:
-                    return new TeamScheduledQuest
+                    return new SoloInfiniteQuest
                     {
                         Name = args.Name,
                         Description = args.Description,
