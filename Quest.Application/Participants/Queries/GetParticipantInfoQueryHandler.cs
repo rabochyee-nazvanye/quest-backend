@@ -11,19 +11,19 @@ using Quest.Domain.Models;
 
 namespace Quest.Application.Teams.Queries
 {
-    public class GetTeamInfoQueryHandler : IRequestHandler<GetTeamInfoQuery, Team>
+    public class GetParticipantInfoQueryHandler : IRequestHandler<GetParticipantInfoQuery, Participant>
     {
         private readonly Db _context;
 
-        public GetTeamInfoQueryHandler(Db context)
+        public GetParticipantInfoQueryHandler(Db context)
         {
             _context = context;
         }
 
-        public async Task<Team> Handle(GetTeamInfoQuery request, CancellationToken cancellationToken)
+        public async Task<Participant> Handle(GetParticipantInfoQuery request, CancellationToken cancellationToken)
         {
-            return await _context.Teams.Where(x => x.Id == request.TeamId)
-                    .Include(x => x.Members)
+            return await _context.Participants.Where(x => x.Id == request.TeamId)
+                    .Include(x => (x as Team).Members)
                     .ThenInclude(x => x.User)
                     .Include(x => x.Principal)
                     .Include(x => x.Quest)

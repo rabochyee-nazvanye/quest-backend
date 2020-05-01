@@ -6,9 +6,9 @@ using Quest.Domain.Models;
 
 namespace Quest.Application.Teams.Queries
 {
-    public class GetTeamInfoQuery : IRequest<Team>
+    public class GetParticipantInfoQuery : IRequest<Participant>
     {
-        public GetTeamInfoQuery(int teamId)
+        public GetParticipantInfoQuery(int teamId)
         {
             TeamId = teamId;
         }
