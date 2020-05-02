@@ -1,4 +1,6 @@
 using System;
+using Quest.API.Enums;
+using Quest.DAL.Migrations;
 using Quest.Domain.Interfaces;
 
 namespace Quest.API.ResourceModels.Quests
@@ -17,6 +19,6 @@ namespace Quest.API.ResourceModels.Quests
         public DateTime EndDate { get; set; }
         public string Status { get; set; }
         protected override bool CheckIsInfinite() => false;
-        protected override string GetQuestType() => "team";
+        protected override string GetQuestType() => QuestParticipantType.Team.ToString().ToLowerInvariant();
     }
 }
