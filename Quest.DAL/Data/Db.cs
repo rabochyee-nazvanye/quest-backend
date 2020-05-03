@@ -74,11 +74,16 @@ namespace Quest.DAL.Data
                 .HasForeignKey(x => x.QuestId)
                 .IsRequired();
 
-            modelBuilder.Entity<Team>()
+            modelBuilder.Entity<Participant>()
                 .HasOne(x => x.Principal)
-                .WithMany(x => x.OwnedTeams)
+                .WithMany(x => x.OwnedParticipants)
                 .HasForeignKey(x => x.PrincipalUserId)
                 .IsRequired();
+            
+            modelBuilder.Entity<Participant>()
+                .HasOne(x => x.Moderator)
+                .WithMany(x => x.ModeratedParticipants)
+                .HasForeignKey(x => x.ModeratorId);
 
             base.OnModelCreating(modelBuilder);
         }

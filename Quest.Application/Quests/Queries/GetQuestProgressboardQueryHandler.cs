@@ -26,13 +26,13 @@ namespace Quest.Application.Quests.Queries
         {
             var user = await _context.Users
                 .Where(x => x.Id == request.UserId)
-                .Include(x => x.ModeratedTeams)
+                .Include(x => x.ModeratedParticipants)
                 .FirstOrDefaultAsync(cancellationToken);
 
             if (user == null)
                 return BaseResponse.Failure<QuestParticipantProgressAndTasksDTO>("Internal: user not found");
 
-            if (user.ModeratedTeams.All(x => x.QuestId != request.QuestId))
+            if (user.ModeratedParticipants.All(x => x.QuestId != request.QuestId))
                 return BaseResponse.Failure<QuestParticipantProgressAndTasksDTO>("User is not a moderator of this quest");
             
             var quest = await _context.Quests
