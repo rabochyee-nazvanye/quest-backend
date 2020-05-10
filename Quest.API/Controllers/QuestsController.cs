@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Runtime.Serialization.Json;
@@ -19,6 +20,7 @@ using Quest.API.ResourceModels.Quests;
 using Quest.API.ResourceModels.Quests.Results;
 using Quest.API.ResourceModels.Tasks;
 using Quest.API.ResourceModels.Teams;
+using Quest.Application.Participants.Commands;
 using Quest.Application.Quests.Commands;
 using Quest.Application.Quests.Queries;
 using Quest.Application.Services;
@@ -201,6 +203,24 @@ namespace Quest.API.Controllers
 
             var response = await _mediator.Send(new GetQuestProgressboardQuery(userId, id));
 
+            if (response.Result == null)
+                return ApiError.ProblemDetails(HttpStatusCode.Forbidden, response.Message);
+
+            return Ok(new QuestProgressboardRM(response.Result));
+        }
+        
+        [Authorize]
+        [HttpPost("{id}/finish")] 
+        public async Task<IActionResult> FinishQuest(int id)
+        {
+            var userId = _userManager.GetUserId(User);
+            var users = new List<string>();
+            users.Add(userId);
+
+            var participantId = await _mediator.Send(new GetParticipantsByUserAndQuestQuery(id, users));
+
+            var response = await _mediator.Send(new FinishQuestCommand(userId, participantId.Result.First().Id));
+            
             if (response.Result == null)
                 return ApiError.ProblemDetails(HttpStatusCode.Forbidden, response.Message);
 
