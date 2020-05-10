@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Quest.Domain.Enums;
 
 namespace Quest.Domain.Models
 {
@@ -22,6 +21,6 @@ namespace Quest.Domain.Models
         [ForeignKey("PrincipalUserId")]
         public ApplicationUser Principal { get; set; }
         
-        public ParticipantStatus Status { get; set; } 
+        public bool isFinished { get; set; } 
     }
 }
