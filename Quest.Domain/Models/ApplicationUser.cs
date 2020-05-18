@@ -13,9 +13,9 @@ namespace Quest.Domain.Models
 
         public List<TeamUser> JoinedTeams { get; set; }
         
-        public List<Team> OwnedTeams { get; set; }
+        public List<Participant> OwnedParticipants { get; set; }
 
-        public List<Team> ModeratedTeams { get; set; }
+        public List<Participant> ModeratedParticipants { get; set; }
         public int TelegramId { get; set; }
     }
 }

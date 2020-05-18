@@ -19,6 +19,7 @@ using Quest.API.ResourceModels.Quests;
 using Quest.API.ResourceModels.Quests.Results;
 using Quest.API.ResourceModels.Tasks;
 using Quest.API.ResourceModels.Teams;
+using Quest.API.Services;
 using Quest.Application.Quests.Commands;
 using Quest.Application.Quests.Queries;
 using Quest.Application.Services;
@@ -66,54 +67,29 @@ namespace Quest.API.Controllers
 
         [Authorize]
         [HttpPost]
-        [ExactQueryParam("teamScheduled")]
-        public async Task<IActionResult> CreateTeamScheduled(CreateTeamScheduledQuestBM model)
+        public async Task<IActionResult> CreateQuest(CreateQuestBM model)
         {
             var userId = _userManager.GetUserId(User);
             if (!ModelState.IsValid)
                 return BadRequest();
-
-            var createQuestArgs = new TeamScheduledConstructorArgs
+            IQuestConstructorArgs questConstructorArgs;
+            
+            try
             {
-                AuthorId = userId,
-                Description = model.Description,
-                ImageUrl = model.ImageUrl,
-                Name = model.Name,
-                RegistrationDeadline = model.RegistrationDeadline,
-                StartDate = model.StartDate,
-                EndDate = model.EndDate,
-                MaxTeamSize = model.MaxTeamSize
-            };
-            var response = await _mediator.Send(new CreateQuestCommand(createQuestArgs));
+                questConstructorArgs = CreateQuestArgsFactory.Create(model, userId);
+            }
+            catch (ArgumentOutOfRangeException exception)
+            {
+                return ApiError.ProblemDetails(HttpStatusCode.Forbidden, exception.Message);
+            }
+            
+            var response = await _mediator.Send(new CreateQuestCommand(questConstructorArgs));
             if (response.Result == null)
                 return ApiError.ProblemDetails(HttpStatusCode.Forbidden, response.Message);
 
             return Created("/quests/" + response.Result.Id, response.Result.Id);
         }
-        
-        [Authorize]
-        [HttpPost]
-        [ExactQueryParam("soloInfinite")]
-        public async Task<IActionResult> CreateSoloInfinite(CreateSoloInfiniteQuestBM model)
-        {
-            var userId = _userManager.GetUserId(User);
-            if (!ModelState.IsValid)
-                return BadRequest();
 
-            var createQuestArgs = new SoloInfiniteConstructorArgs{
-                AuthorId = userId,
-                Description = model.Description,
-                ImageUrl = model.ImageUrl,
-                Name = model.Name
-            };
-            var response = await _mediator.Send(new CreateQuestCommand(createQuestArgs));
-            if (response.Result == null)
-                return ApiError.ProblemDetails(HttpStatusCode.Forbidden, response.Message);
-
-            return Created("/quests/" + response.Result.Id, response.Result.Id);
-        }
-        
-        
         [Authorize]
         [HttpGet("{id}/participants")]
         [ExactQueryParam("members")]

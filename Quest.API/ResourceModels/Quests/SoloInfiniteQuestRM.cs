@@ -1,3 +1,4 @@
+using Quest.API.Enums;
 using Quest.Domain.Interfaces;
 
 namespace Quest.API.ResourceModels.Quests
@@ -8,7 +9,7 @@ namespace Quest.API.ResourceModels.Quests
         {
         }
         
-        protected override string GetQuestType() => "solo";
+        protected override string GetQuestType() => QuestParticipantType.Solo.ToString().ToLowerInvariant();
         protected override bool CheckIsInfinite() => true;
     }
 }

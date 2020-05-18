@@ -16,6 +16,8 @@ namespace Quest.Domain.Models
         public QuestEntity Quest { get; set; }
         public List<TaskAttempt> TaskAttempts { get; set; }
         public List<ParticipantHint> UsedHints { get; set; }
+        public string ModeratorId { get; set; }
+        [ForeignKey("ModeratorId")]
         public ApplicationUser Moderator { get; set; }
         
         public string PrincipalUserId { get; set; }
