@@ -43,6 +43,8 @@ namespace Quest.Domain.Models
             ResultsAvailable = 4
         }
 
+        public override bool IsReadyToShowResults() => GetQuestStatus() == QuestStatus.ResultsAvailable;
+
         public override bool IsReadyToReceiveTaskAttempts()
         {
             return GetQuestStatus() == QuestStatus.InProgress;

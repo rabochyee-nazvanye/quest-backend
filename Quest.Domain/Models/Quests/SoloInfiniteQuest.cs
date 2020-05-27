@@ -7,6 +7,8 @@ namespace Quest.Domain.Models
     public class SoloInfiniteQuest : QuestEntity, IInfiniteQuest, ISoloQuest
     {
         public List<SoloPlayer> GetPlayers() => Participants.Select(x => x as SoloPlayer).ToList();
+        public override bool IsReadyToShowResults() => true;
+
         public override bool IsReadyToReceiveTaskAttempts() => true;
         public override bool RegistrationIsAvailable() => true;
 

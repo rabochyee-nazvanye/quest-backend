@@ -34,7 +34,7 @@ namespace Quest.Application.Quests.Queries
             if (quest == null)
                 return BaseResponse.Failure<QuestScoreboardDTO>("Quest not found.");
 
-            if (!quest.IsReadyToReceiveTaskAttempts())
+            if (!quest.IsReadyToShowResults())
                 return BaseResponse.Failure<QuestScoreboardDTO>("Results are not available yet.");
             
             var teamsResults = quest.Participants.Select(team =>
