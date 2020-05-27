@@ -20,7 +20,7 @@ namespace Quest.Domain.Models
         [ForeignKey("AuthorId")]
         public ApplicationUser Author { get; set; }
         public List<TaskEntity> Tasks { get; set; }
-
+        public abstract bool IsReadyToShowResults();
         public abstract bool IsReadyToReceiveTaskAttempts();
         public abstract bool RegistrationIsAvailable();
         public List<Participant> Participants { get; set; }
