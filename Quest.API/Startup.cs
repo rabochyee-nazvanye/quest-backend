@@ -30,6 +30,7 @@ using Microsoft.OpenApi.Models;
 using Newtonsoft.Json;
 using Quest.API.Helpers;
 using Quest.Application;
+using Quest.Application.Services.ExternalAuth;
 using Quest.Application.Teams.Commands;
 using Quest.Domain.Services;
 using IHostingEnvironment = Microsoft.AspNetCore.Hosting.IHostingEnvironment;
@@ -109,6 +110,7 @@ namespace Quest.API
             //Add custom services to DI container
             services.AddScoped<ITokenService, TokenService>();
             services.AddScoped<ITeamService, TeamService>();
+            services.AddScoped<IExternalAuthService, ExternalAuthService>();
 
             services.AddHttpContextAccessor();
             services.UpgradePasswordSecurity().UseArgon2<IdentityUser>();
