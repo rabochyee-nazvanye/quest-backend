@@ -18,22 +18,20 @@ namespace Quest.API.Controllers
     public class ExternalAuthController : Controller
     {
         private readonly IMediator _mediator;
-        private readonly UserManager<ApplicationUser> _userManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly ITokenService _tokenService;
 
-        public ExternalAuthController(IMediator mediator, UserManager<ApplicationUser> userManager,
-            SignInManager<ApplicationUser> signInManager, ITokenService tokenService)
+        public ExternalAuthController(IMediator mediator, SignInManager<ApplicationUser> signInManager,
+            ITokenService tokenService)
         {
             _mediator = mediator;
-            _userManager = userManager;
             _signInManager = signInManager;
             _tokenService = tokenService;
         }
         
-        [HttpPost("authenticate")]
+        [HttpPost]
         [AllowAnonymous]
-        public async Task<IActionResult> Facebook([FromBody] ExternalAuthBM model)
+        public async Task<IActionResult> Post([FromBody] ExternalAuthBM model)
         {
             var response = await _mediator.Send(
                 new AuthenticateCommand(model.AccessToken, model.OAuthProvider));
