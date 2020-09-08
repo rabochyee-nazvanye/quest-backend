@@ -82,15 +82,16 @@ namespace Quest.API.Controllers
         }
         
         [Authorize(Roles="Admin")]
-        [HttpPost("{id}/attempts/{attemptId}")]
-        public async Task<IActionResult> UpdateTaskAttempt(int id, int attemptId, [FromBody]AttemptFeedbackBM attemptFeedback)
+        [HttpPost("{id}/attempts/taskId={taskId}&participantId={participantId}")]
+        public async Task<IActionResult> UpdateTaskAttempt(int id, int taskId, int participantId, [FromBody]AttemptFeedbackBM attemptFeedback)
         {
             if (!ModelState.IsValid)
                 return BadRequest();
             
             var response = await _mediator.Send(new VerifyTaskAttemptCommand
             {
-                AttemptId = attemptId,
+                TaskId = taskId,
+                ParticipantId = participantId,
                 Message = attemptFeedback.Comment,
                 IsCorrect = attemptFeedback.IsCorrect
             });

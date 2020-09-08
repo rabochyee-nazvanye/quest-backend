@@ -20,13 +20,13 @@ namespace Quest.Application.Tasks.Commands
 
         public async Task<BaseResponse<bool>> Handle(VerifyTaskAttemptCommand request, CancellationToken cancellationToken)
         {
-            var taskAttempt = await _context.TaskAttempts.Where(x => x.Id == request.AttemptId)
-                .FirstOrDefaultAsync(cancellationToken: cancellationToken);
+            var taskAttempt = await _context.TaskAttempts.FirstOrDefaultAsync(
+                x => x.TaskId == request.TaskId && x.ParticipantId == request.ParticipantId, cancellationToken);
 
             if (taskAttempt == null)
                 return BaseResponse.Failure<bool>("Task attempt was not found");
 
-            if (taskAttempt.Status == TaskAttemptStatus.OnReview)
+            if (taskAttempt.Status != TaskAttemptStatus.Accepted)
             {
                 var currentTime = $"{DateTime.Now:MM/dd/yyyy H:mm} UTC";
                 taskAttempt.Status = request.IsCorrect ? TaskAttemptStatus.Accepted : TaskAttemptStatus.Error;

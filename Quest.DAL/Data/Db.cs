@@ -38,6 +38,23 @@ namespace Quest.DAL.Data
             //
             // One-To-Many, Many-To-Many relationships
             //
+            
+            // Task <> Participant (many-to-many)
+            modelBuilder.Entity<TaskAttempt>()
+                .HasKey(k => new { k.TaskId, k.ParticipantId });
+            
+            modelBuilder.Entity<TaskAttempt>()
+                .HasOne(t => t.Participant)
+                .WithMany(p => p.TaskAttempts)
+                .HasForeignKey(t => t.ParticipantId)
+                .IsRequired();
+            
+            modelBuilder.Entity<TaskAttempt>()
+                .HasOne(t => t.TaskEntity)
+                .WithMany(p => p.TaskAttempts)
+                .HasForeignKey(t => t.TaskId)
+                .IsRequired();
+            
             modelBuilder.Entity<TeamUser>()
                 .HasKey(k => new { k.TeamId, k.UserId });
 
