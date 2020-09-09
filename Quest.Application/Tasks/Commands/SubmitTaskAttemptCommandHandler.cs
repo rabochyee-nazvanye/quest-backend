@@ -40,11 +40,14 @@ namespace Quest.Application.Tasks.Commands
             
             if (taskAttempt != null)
             {
-                // if this task is already solved, exit
-                if (taskAttempt.Status == TaskAttemptStatus.Accepted)
+                // if this task is already solved or on manual review, exit
+                if (taskAttempt.Status == TaskAttemptStatus.Accepted || 
+                    task.VerificationType == VerificationType.Manual && taskAttempt.Status == TaskAttemptStatus.OnReview )
                 {
                     return;
                 }
+
+                taskAttempt.Text = attemptText;
             }
             else
             {
