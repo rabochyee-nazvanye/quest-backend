@@ -49,7 +49,7 @@ namespace Quest.Application.Tasks.Commands
 
                 taskAttempt.Text = attemptText;
                 taskAttempt.Status = TaskAttemptStatus.OnReview;
-                taskAttempt.AdminComment = "";
+                taskAttempt.AdminComment = null;
             }
             else
             {
