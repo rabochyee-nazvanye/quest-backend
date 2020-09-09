@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Quest.Application.DTOs;
+using Quest.Application.Services;
 using Quest.DAL.Data;
 using Quest.Domain.Enums;
 using Quest.Domain.Interfaces;
@@ -17,11 +18,13 @@ namespace Quest.Application.Tasks.Commands
     {
         private readonly Db _context;
         private readonly IMediator _mediator;
+        private readonly ICacheService _cache;
 
-        public SubmitTaskAttemptCommandHandler(Db context, IMediator mediator)
+        public SubmitTaskAttemptCommandHandler(Db context, IMediator mediator, ICacheService cache)
         {
             _context = context;
             _mediator = mediator;
+            _cache = cache;
         }
 
         private static string Normalize(string x) => x.Trim().ToLowerInvariant();
@@ -62,7 +65,12 @@ namespace Quest.Application.Tasks.Commands
             {
                 // do auto verification
                 if (task.CorrectAnswers.Any(x => Normalize(x) == Normalize(taskAttempt.Text)))
+                {
                     taskAttempt.Status = TaskAttemptStatus.Accepted;
+                    // invalidate scoreboard caches
+                    _cache.Invalidate(CacheName.ProgressBoardMain, task.QuestId.ToString());
+                    _cache.Invalidate(CacheName.ProgressBoardSingleEntry, participant.Id.ToString());
+                }
                 else
                     taskAttempt.Status = TaskAttemptStatus.Error;
 
