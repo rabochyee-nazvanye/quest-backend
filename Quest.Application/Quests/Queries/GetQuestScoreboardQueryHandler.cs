@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Quest.Application.DTOs;
+using Quest.Application.Services;
 using Quest.DAL.Data;
 using Quest.Domain.Enums;
 using Quest.Domain.Models;
@@ -15,27 +16,23 @@ namespace Quest.Application.Quests.Queries
     {
         private readonly Db _context;
         private const int UsedHintPenaltyPercent = 20;
+        private readonly ICacheService _cache;
 
-        public GetQuestScoreboardQueryHandler(Db context)
+        public GetQuestScoreboardQueryHandler(Db context, ICacheService cache)
         {
             _context = context;
+            _cache = cache;
         }
 
-        public async Task<BaseResponse<QuestScoreboardDTO>> Handle(GetQuestScoreboardQuery request, CancellationToken cancellationToken)
+        private async Task<QuestScoreboardDTO> CreateScoreboardAsync(int questId, CancellationToken cancellationToken)
         {
             var quest = await _context.Quests
-                .Where(x => x.Id == request.QuestId)
+                .Where(x => x.Id == questId)
                 .Include(x => x.Tasks)
                 .Include(x => x.Participants)
                 .ThenInclude(x => x.TaskAttempts)
                 .ThenInclude(x => x.TaskEntity)
                 .FirstOrDefaultAsync(cancellationToken: cancellationToken);
-
-            if (quest == null)
-                return BaseResponse.Failure<QuestScoreboardDTO>("Quest not found.");
-
-            if (!quest.IsReadyToShowResults())
-                return BaseResponse.Failure<QuestScoreboardDTO>("Results are not available yet.");
             
             var teamsResults = quest.Participants.Select(team =>
             {
@@ -72,8 +69,27 @@ namespace Quest.Application.Quests.Queries
                     return x;
                 })
                 .ToList();
+
+            return new QuestScoreboardDTO(sortedResults);
+        }
+        
+        public async Task<BaseResponse<QuestScoreboardDTO>> Handle(GetQuestScoreboardQuery request, CancellationToken cancellationToken)
+        {
+            var quest = await _context.Quests.FindAsync(request.QuestId);
+
+            if (quest == null)
+                return BaseResponse.Failure<QuestScoreboardDTO>("Quest not found.");
+
+            if (!quest.IsReadyToShowResults())
+                return BaseResponse.Failure<QuestScoreboardDTO>("Results are not available yet.");
             
-            return new BaseResponse<QuestScoreboardDTO>(new QuestScoreboardDTO(sortedResults), "Success");
+            Task<QuestScoreboardDTO> ScoreBoardGetter() =>
+                CreateScoreboardAsync(request.QuestId, CancellationToken.None);
+            
+            var scoreBoard = await _cache.GetOrAddAsync(CacheName.ScoreBoard, 
+                request.QuestId.ToString(), ScoreBoardGetter);
+            
+            return new BaseResponse<QuestScoreboardDTO>(scoreBoard, "Success");
         }
     }
 }

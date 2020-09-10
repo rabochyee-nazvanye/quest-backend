@@ -28,11 +28,6 @@ namespace Quest.Application.Tasks.Queries
                 .Include(x => x.Participants)
                     .ThenInclude(x => (x as Team).Members)
                         .ThenInclude(x => x.User)
-                .Include(x => x.Participants)
-                    .ThenInclude(x => x.TaskAttempts)
-                .Include(x => x.Participants)
-                    .ThenInclude(x => x.UsedHints)
-                        .ThenInclude(x => x.Hint)
                 .FirstOrDefaultAsync(x => x.Id == request.QuestId,
                 cancellationToken: cancellationToken);
 
@@ -52,26 +47,34 @@ namespace Quest.Application.Tasks.Queries
             
             if (participant == null)
                 return BaseResponse.Failure<List<TaskAndHintsDTO>>("Could not find participant of this user.");
-
-            var tasks = await _context.Tasks
+            
+            var allTasks = await _context.Tasks
                 .Where(x => x.QuestId == request.QuestId)
-                .Include(x => x.TaskAttempts)
                 .Include(x => x.Hints)
                 .ToListAsync(cancellationToken);
 
-            var participantTaskStatuses = tasks
+            await _context.Entry(participant)
+                .Collection(x => x.UsedHints)
+                .Query()
+                .Include(x => x.Hint)
+                .LoadAsync(cancellationToken);
+
+            await _context.Entry(participant)
+                .Collection(x => x.TaskAttempts)
+                .LoadAsync(cancellationToken);
+
+            var usedHintsByTaskIds = participant.UsedHints
+                .ToLookup(x => x.Hint.TaskId, x => x.Hint);
+            
+            var taskAttemptByTaskIds = participant
+                .TaskAttempts.ToDictionary(x => x.TaskId, x => x);
+
+            var participantTaskStatuses = allTasks
                 .Select(x =>
                 {
-                    x.TaskAttempts = x.TaskAttempts.Where(x => x.ParticipantId == participant.Id).ToList();
-                    return x;
-                })
-                .Select(x =>
-                {
-                    var usedHints = participant.UsedHints
-                        .Where(h => h.Hint.TaskId == x.Id)
-                        .Select(participantHint => participantHint.Hint)
-                        .ToList();
-                    return new TaskAndHintsDTO(x, usedHints);
+                    var usedHints = usedHintsByTaskIds[x.Id].ToList();
+                    taskAttemptByTaskIds.TryGetValue(x.Id, out var taskAttempt);
+                    return new TaskAndHintsDTO(x, taskAttempt, usedHints);
                 })
                 .ToList();
 

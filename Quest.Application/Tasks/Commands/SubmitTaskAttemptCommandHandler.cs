@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Quest.Application.DTOs;
+using Quest.Application.Services;
 using Quest.DAL.Data;
 using Quest.Domain.Enums;
 using Quest.Domain.Interfaces;
@@ -17,43 +18,74 @@ namespace Quest.Application.Tasks.Commands
     {
         private readonly Db _context;
         private readonly IMediator _mediator;
+        private readonly ICacheService _cache;
 
-        public SubmitTaskAttemptCommandHandler(Db context, IMediator mediator)
+        public SubmitTaskAttemptCommandHandler(Db context, IMediator mediator, ICacheService cache)
         {
             _context = context;
             _mediator = mediator;
+            _cache = cache;
         }
 
+        private static string Normalize(string x) => x.Trim().ToLowerInvariant();
+
         private async Task ProcessAttempt(TaskEntity task, string attemptText,
-            int participantId, int usedHintsCount, CancellationToken cancellationToken)
+            Participant participant, int usedHintsCount, CancellationToken cancellationToken)
         {
-            static string Normalize(string x) => x.Trim().ToLowerInvariant();
-            var taskAttempt = new TaskAttempt
+            var taskAttempt =
+                await _context.TaskAttempts
+                    .Include(x => x.Participant)
+                    .ThenInclude(x => x.Moderator)
+                    .FirstOrDefaultAsync(x => x.TaskId == task.Id && x.ParticipantId == participant.Id, cancellationToken);
+            
+            if (taskAttempt != null)
             {
-                TaskEntity = task,
-                ParticipantId = participantId,
-                Text = attemptText,
-                UsedHintsCount = usedHintsCount,
-                Status = TaskAttemptStatus.OnReview,
-                SubmitTime = DateTime.Now.ToUniversalTime()
-            };
+                // if this task is already solved or on manual review, exit
+                if (taskAttempt.Status == TaskAttemptStatus.Accepted || 
+                    task.VerificationType == VerificationType.Manual && taskAttempt.Status == TaskAttemptStatus.OnReview )
+                {
+                    return;
+                }
+
+                taskAttempt.Text = attemptText;
+                taskAttempt.Status = TaskAttemptStatus.OnReview;
+                taskAttempt.AdminComment = null;
+            }
+            else
+            {
+                taskAttempt = new TaskAttempt
+                {
+                    TaskEntity = task,
+                    ParticipantId = participant.Id,
+                    Participant = participant,
+                    Text = attemptText,
+                    UsedHintsCount = usedHintsCount,
+                    Status = TaskAttemptStatus.OnReview,
+                    SubmitTime = DateTime.Now.ToUniversalTime()
+                };
+                await _context.AddAsync(taskAttempt, cancellationToken);
+            }
 
             if (task.VerificationType == VerificationType.Automatic)
             {
                 // do auto verification
                 if (task.CorrectAnswers.Any(x => Normalize(x) == Normalize(taskAttempt.Text)))
+                {
                     taskAttempt.Status = TaskAttemptStatus.Accepted;
+                    // invalidate scoreboard caches
+                    _cache.Invalidate(CacheName.ProgressBoardMain, task.QuestId.ToString());
+                    _cache.Invalidate(CacheName.ProgressBoardSingleEntry, participant.Id.ToString());
+                }
                 else
                     taskAttempt.Status = TaskAttemptStatus.Error;
 
-                await _context.TaskAttempts.AddAsync(taskAttempt, cancellationToken);
                 await _context.SaveChangesAsync(cancellationToken);
 
                 return;
             }
-            
-            await _context.TaskAttempts.AddAsync(taskAttempt, cancellationToken);
             await _context.SaveChangesAsync(cancellationToken);
+
+            await _context.Entry(participant).Reference(x => x.Moderator).LoadAsync(cancellationToken);
             
             var response = await _mediator.Send(new SendAttemptToHubCommand(taskAttempt), cancellationToken);
             if (!response.Result)
@@ -74,14 +106,10 @@ namespace Quest.Application.Tasks.Commands
                 return BaseResponse.Failure<TaskAndHintsDTO>("Internal: user not found");
             
             var task = await _context.Tasks.Where(x => x.Id == request.TaskId)
-                .Include(x => x.TaskAttempts)
                 .Include(x => x.Quest)
                 .ThenInclude(x => x.Participants)
                     .ThenInclude(x => (x as Team).Members)
                             .ThenInclude(x => x.User)
-                .Include(x => x.Quest)
-                    .ThenInclude(x => x.Participants)
-                        .ThenInclude(x => x.Moderator)
                 .Include(x => x.Quest)
                     .ThenInclude(x => x.Participants)
                         .ThenInclude(x => x.UsedHints)
@@ -90,7 +118,7 @@ namespace Quest.Application.Tasks.Commands
 
             if (task == null)
                 return BaseResponse.Failure<TaskAndHintsDTO>("Task was not found");
-
+            
             var participant = task.Quest.FindParticipant(request.UserId);
             
             if (participant == null)
@@ -104,16 +132,15 @@ namespace Quest.Application.Tasks.Commands
                 .Select(x => x.Hint)
                 .ToList();
             
-            await ProcessAttempt(task, request.AttemptText, participant.Id, usedHints.Count, cancellationToken);
-            
-            // quick and dirty task re-fetch
-            var updatedTask = await _context.Tasks.Where(x => x.Id == request.TaskId)
-                .Include(x => x.TaskAttempts)
-                .Include(x => x.Hints)
-                .FirstOrDefaultAsync(cancellationToken);
+            await ProcessAttempt(task, request.AttemptText, participant, usedHints.Count, cancellationToken);
 
+            var taskAttempt = await _context.TaskAttempts
+                .Include(x => x.TaskEntity)
+                .ThenInclude(x => x.Hints)
+                .FirstOrDefaultAsync(x => x.TaskId == request.TaskId && x.ParticipantId == participant.Id,
+                    cancellationToken);
             
-            return BaseResponse.Success(new TaskAndHintsDTO(updatedTask, usedHints), "Success");
+            return BaseResponse.Success(new TaskAndHintsDTO(taskAttempt.TaskEntity,taskAttempt, usedHints), "Success");
         }
     }
 }

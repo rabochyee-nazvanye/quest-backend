@@ -7,8 +7,9 @@ namespace Quest.Domain.Models
 {
     public class TaskAttempt
     {
-        [Key]
-        public int Id { get; set; }
+        public int ParticipantId { get; set; }
+        [ForeignKey("ParticipantId")]
+        public Participant Participant { get; set; }
         public int TaskId { get; set; }
         [ForeignKey("TaskId")]
         public TaskEntity TaskEntity { get; set; } 
@@ -18,10 +19,5 @@ namespace Quest.Domain.Models
         public TaskAttemptStatus Status { get; set; }
         public string AdminComment { get; set; }
         public DateTime SubmitTime { get; set; }
-        
-        public int ParticipantId { get; set; }
-        
-        [ForeignKey("ParticipantId")]
-        public Participant Participant { get; set; }
     }
 }

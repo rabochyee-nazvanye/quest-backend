@@ -18,27 +18,11 @@ namespace Quest.API.ResourceModels.Tasks
             Group = dto.Task.Group;
             HintsCount = dto.Task.Hints.Count;
             
-            var taskStatus =  dto
-                .Task.TaskAttempts.Any(x => x.Status == TaskAttemptStatus.Accepted)
-                ? TaskAttemptStatus.Accepted
-                : dto.Task.TaskAttempts.Any(x => x.Status == TaskAttemptStatus.OnReview)
-                    ? TaskAttemptStatus.OnReview
-                    : dto.Task.TaskAttempts.Any(x => x.Status == TaskAttemptStatus.Error)
-                        ? TaskAttemptStatus.Error
-                        : TaskAttemptStatus.NotSubmitted;
-
+            var taskStatus =  dto.TaskAttempt?.Status ?? TaskAttemptStatus.NotSubmitted;
             Status = taskStatus.ToString().ToLowerInvariant();
 
-            var lastAttempt = taskStatus == TaskAttemptStatus.Accepted
-                ? dto.Task.TaskAttempts
-                    .Where(x => x.Status == TaskAttemptStatus.Accepted)
-                    .OrderByDescending(x => x.SubmitTime)
-                    .First()
-                : dto.Task.TaskAttempts.OrderByDescending(x => x.SubmitTime).FirstOrDefault();
-
-            AdminComment = lastAttempt?.AdminComment;
-            LastSubmittedAnswer = lastAttempt?.Text;
-            
+            AdminComment = dto.TaskAttempt?.AdminComment;
+            LastSubmittedAnswer = dto.TaskAttempt?.Text;
             UsedHints = dto.UsedHints.Select(x => new HintRM(x)).ToList();
         }
         

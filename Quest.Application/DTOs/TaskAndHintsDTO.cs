@@ -6,12 +6,14 @@ namespace Quest.Application.DTOs
 {
     public class TaskAndHintsDTO
     {
-        public TaskAndHintsDTO(TaskEntity task, List<Hint> usedHints)
+        public TaskAndHintsDTO(TaskEntity task, TaskAttempt taskAttempt, List<Hint> usedHints)
         {
             Task = task;
+            TaskAttempt = taskAttempt;
             UsedHints = usedHints;
         }
         public TaskEntity Task { get; set; }
+        public TaskAttempt TaskAttempt { get; set; }
         public List<Hint> UsedHints { get; set; }
     }
 }
