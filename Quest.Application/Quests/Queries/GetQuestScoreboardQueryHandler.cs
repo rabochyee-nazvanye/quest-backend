@@ -80,9 +80,6 @@ namespace Quest.Application.Quests.Queries
             if (quest == null)
                 return BaseResponse.Failure<QuestScoreboardDTO>("Quest not found.");
 
-            if (!quest.IsReadyToShowResults())
-                return BaseResponse.Failure<QuestScoreboardDTO>("Results are not available yet.");
-            
             Task<QuestScoreboardDTO> ScoreBoardGetter() =>
                 CreateScoreboardAsync(request.QuestId, CancellationToken.None);
             
