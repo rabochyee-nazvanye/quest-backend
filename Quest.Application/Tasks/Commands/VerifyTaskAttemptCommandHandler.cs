@@ -45,6 +45,8 @@ namespace Quest.Application.Tasks.Commands
                     // invalidate scoreboard caches
                     _cache.Invalidate(CacheName.ProgressBoardMain, taskAttempt.TaskEntity.QuestId.ToString());
                     _cache.Invalidate(CacheName.ProgressBoardSingleEntry, taskAttempt.ParticipantId.ToString());
+                    _cache.Invalidate(CacheName.ScoreBoard, taskAttempt.TaskEntity.QuestId.ToString());
+                    _cache.Invalidate(CacheName.ScoreBoardSingleEntry, taskAttempt.ParticipantId.ToString());
                 }
             }
             
