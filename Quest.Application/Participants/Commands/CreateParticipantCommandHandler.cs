@@ -44,9 +44,6 @@ namespace Quest.Application.Participants.Commands
             if (!validationResult.Result)
                 return BaseResponse.Failure<Participant>(validationResult.Message);
             
-            if (!quest.RegistrationIsAvailable())
-                return BaseResponse.Failure<Participant>("You can't register to that quest no more");
-            
             var participant = _participantFactory.Create(request.ParticipantConstructorArgs);
             
             await _context.Participants.AddAsync(participant, cancellationToken);
