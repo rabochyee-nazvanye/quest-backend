@@ -31,9 +31,13 @@ namespace Quest.Application.Quests.Queries
                 .Include(x => x.TaskAttempts)
                 .ThenInclude(x => x.TaskEntity)
                 .FirstOrDefaultAsync(x => x.Id == participantId);
-            
-            var successfulAttempts = team.TaskAttempts
+
+            var acceptedAttempts = team.TaskAttempts
                 .Where(x => x.Status == TaskAttemptStatus.Accepted)
+                .ToList();
+            
+            var successfulAttempts = 
+                acceptedAttempts
                 .ToLookup(x => x.TaskId);
 
             var bestAttempts = successfulAttempts
@@ -50,10 +54,23 @@ namespace Quest.Application.Quests.Queries
                 return (taskReward * (100 - totalPenaltyPercent)) / 100;
             }).ToList();
 
+            var lastSuccessAttemptSubmitDate = DateTime.MinValue;
+
+            if (successfulAttempts.Any())
+            {
+                var lastAcceptedAttempt = acceptedAttempts.OrderByDescending(x => x.SubmitTime).FirstOrDefault();
+                if (lastAcceptedAttempt != null)
+                {
+                    lastSuccessAttemptSubmitDate = lastAcceptedAttempt.SubmitTime;
+                }
+            }
+
+            
             return new ParticipantResultDTO
             {
                 Name = team.Name,
-                Score = bestAttemptScores.Sum()
+                Score = bestAttemptScores.Sum(),
+                LastSuccessfulSubmitTime = lastSuccessAttemptSubmitDate
             };
         }
         
@@ -79,6 +96,7 @@ namespace Quest.Application.Quests.Queries
             
             var sortedResults = teamsResults
                 .OrderByDescending(x => x.Score)
+                .ThenBy(p => p.LastSuccessfulSubmitTime)
                 .Select((x, idx) =>
                 {
                     x.Place = idx;
