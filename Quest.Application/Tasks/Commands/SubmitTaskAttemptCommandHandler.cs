@@ -50,6 +50,8 @@ namespace Quest.Application.Tasks.Commands
                 taskAttempt.Text = attemptText;
                 taskAttempt.Status = TaskAttemptStatus.OnReview;
                 taskAttempt.AdminComment = null;
+                taskAttempt.UsedHintsCount = usedHintsCount;
+                taskAttempt.SubmitTime = DateTime.Now.ToUniversalTime();
             }
             else
             {
