@@ -1,0 +1,78 @@
+name: .NET Core master-v0 deploy
+
+on:
+  push:
+    branches: [ master-v0 ]
+
+jobs:
+  build:
+
+    runs-on: [self-hosted, linux, x64]
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup .NET Core
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: 3.1.301
+      - name: Install dependencies
+        run: dotnet restore
+      - name: Dotnet Publish
+        run: dotnet publish -c Release -o deploy
+      - name: Clean tmp directory
+        uses: garygrossgarten/github-action-ssh@v0.5.0
+        with:
+          command: rm -r ${{ secrets.REMOTE_TMP }} 2>/dev/null
+          host: ${{ secrets.REMOTE_HOST }}
+          username: ${{ secrets.REMOTE_USER }}
+          password: ${{ secrets.REMOTE_PASSWORD }}
+      - name: Clean tmp directory
+        uses: garygrossgarten/github-action-ssh@v0.5.0
+        with:
+          command: mkdir -p ${{ secrets.REMOTE_TMP }}
+          host: ${{ secrets.REMOTE_HOST }}
+          username: ${{ secrets.REMOTE_USER }}
+          password: ${{ secrets.REMOTE_PASSWORD }}
+      - name: Copy via ssh
+        uses: garygrossgarten/github-action-scp@v0.6.0
+        with:
+          local: /home/sshuser/actions-runner/_work/quest-backend/quest-backend/deploy/
+          remote: ${{ secrets.REMOTE_TMP }}
+          host: ${{ secrets.REMOTE_HOST }}
+          username: ${{ secrets.REMOTE_USER }}
+          password: ${{ secrets.REMOTE_PASSWORD }}
+      - name: Stop running service
+        uses: garygrossgarten/github-action-ssh@v0.5.0
+        with:
+          command: sudo service Quest stop
+          host: ${{ secrets.REMOTE_HOST }}
+          username: ${{ secrets.REMOTE_USER }}
+          password: ${{ secrets.REMOTE_PASSWORD }}
+      - name: Remove target directory
+        uses: garygrossgarten/github-action-ssh@v0.5.0
+        with:
+          command: rm -r ${{ secrets.REMOTE_TARGET }} 2>/dev/null
+          host: ${{ secrets.REMOTE_HOST }}
+          username: ${{ secrets.REMOTE_USER }}
+          password: ${{ secrets.REMOTE_PASSWORD }}
+      - name: Move tmp directory to target
+        uses: garygrossgarten/github-action-ssh@v0.5.0
+        with:
+          command: mv ${{ secrets.REMOTE_TMP }} ${{ secrets.REMOTE_TARGET }}
+          host: ${{ secrets.REMOTE_HOST }}
+          username: ${{ secrets.REMOTE_USER }}
+          password: ${{ secrets.REMOTE_PASSWORD }}
+      - name: Copy appsettings
+        uses: garygrossgarten/github-action-ssh@v0.5.0
+        with:
+          command: cp ${{ secrets.REMOTE_APPSETTINGS }} ${{ secrets.REMOTE_TARGET }}
+          host: ${{ secrets.REMOTE_HOST }}
+          username: ${{ secrets.REMOTE_USER }}
+          password: ${{ secrets.REMOTE_PASSWORD }}
+      - name: Run stopped service
+        uses: garygrossgarten/github-action-ssh@v0.5.0
+        with:
+          command: sudo service Quest start
+          host: ${{ secrets.REMOTE_HOST }}
+          username: ${{ secrets.REMOTE_USER }}
+          password: ${{ secrets.REMOTE_PASSWORD }}
