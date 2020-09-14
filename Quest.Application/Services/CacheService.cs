@@ -9,7 +9,8 @@ namespace Quest.Application.Services
     {
         ProgressBoardMain,
         ProgressBoardSingleEntry,
-        ScoreBoard
+        ScoreBoard,
+        ScoreBoardSingleEntry
     }
 
     public interface ICacheService
@@ -27,6 +28,8 @@ namespace Quest.Application.Services
         {
             {CacheName.ProgressBoardMain, 15},
             {CacheName.ProgressBoardSingleEntry, 15},
+            {CacheName.ScoreBoard, 15},
+            {CacheName.ScoreBoardSingleEntry, 15},
         };
 
         public CacheService(IAppCache cache)

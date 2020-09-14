@@ -65,8 +65,11 @@ namespace Quest.Application.Quests.Queries
                 .ThenInclude(x => x.TaskEntity)
                 .FirstOrDefaultAsync(x => x.Id == participantId, cancellationToken: cancellationToken);
             
-            var successfulAttempts = participant.TaskAttempts
+            var acceptedAttempts = participant.TaskAttempts
                 .Where(x => x.Status == TaskAttemptStatus.Accepted)
+                .ToList();
+            
+            var successfulAttempts = acceptedAttempts
                 .ToLookup(x => x.TaskId);
 
             //todo optimizations, 12hrs before release...
@@ -96,7 +99,18 @@ namespace Quest.Application.Quests.Queries
                 })
                 .ToDictionary(x => x.task, x => x.score);
 
-            return new ParticipantProgressDTO(participant, allTaskScores);
+            var lastSuccessAttemptSubmitDate = DateTime.MinValue;
+
+            if (successfulAttempts.Any())
+            {
+                var lastAcceptedAttempt = acceptedAttempts.OrderByDescending(x => x.SubmitTime).FirstOrDefault();
+                if (lastAcceptedAttempt != null)
+                {
+                    lastSuccessAttemptSubmitDate = lastAcceptedAttempt.SubmitTime;
+                }
+            }
+
+            return new ParticipantProgressDTO(participant, allTaskScores, lastSuccessAttemptSubmitDate);
         }
 
         public async Task<BaseResponse<QuestParticipantProgressAndTasksDTO>> Handle(GetQuestProgressboardQuery request,

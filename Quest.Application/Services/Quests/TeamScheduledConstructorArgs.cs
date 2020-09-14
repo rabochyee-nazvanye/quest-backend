@@ -16,10 +16,10 @@ namespace Quest.Application.Services
 
         public BaseResponse<bool> Validate()
         {
-            if (!string.IsNullOrWhiteSpace(Name)
-                && !string.IsNullOrWhiteSpace(Description)
-                && !string.IsNullOrWhiteSpace(ImageUrl)
-                && !string.IsNullOrWhiteSpace(AuthorId))
+            if (string.IsNullOrWhiteSpace(Name)
+                || string.IsNullOrWhiteSpace(Description)
+                || string.IsNullOrWhiteSpace(ImageUrl)
+                || string.IsNullOrWhiteSpace(AuthorId))
                 return BaseResponse.Failure<bool>("Arguments are invalid.");
 
             if (StartDate < DateTime.Now || EndDate < DateTime.Now ||
