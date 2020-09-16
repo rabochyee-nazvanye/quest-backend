@@ -8,5 +8,11 @@ namespace Quest.Application.Quests.Queries
 {
     public class GetAllQuestsQuery : IRequest<List<QuestEntity>>
     {
+        public GetAllQuestsQuery(string userId)
+        {
+            UserId = userId;
+        }
+        
+        public string UserId { get; set; }
     }
 }

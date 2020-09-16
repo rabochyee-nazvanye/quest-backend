@@ -2,7 +2,9 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using MediatR;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Quest.Application.DTOs;
 using Quest.DAL.Data;
 using Quest.Domain.Interfaces;
 using Quest.Domain.Models;
@@ -12,10 +14,12 @@ namespace Quest.Application.Tasks.Commands
     public class SubmitHintRequestCommandHandler : IRequestHandler<SubmitHintRequestCommand, BaseResponse<Hint>>
     {
         private readonly Db _context;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public SubmitHintRequestCommandHandler(Db context)
+        public SubmitHintRequestCommandHandler(Db context, UserManager<ApplicationUser> userManager)
         {
             _context = context;
+            _userManager = userManager;
         }
 
         public async Task<BaseResponse<Hint>> Handle(SubmitHintRequestCommand request, CancellationToken cancellationToken)
@@ -23,10 +27,10 @@ namespace Quest.Application.Tasks.Commands
             if (request.HintNumber < 0)
                 return BaseResponse.Failure<Hint>("Hint number should be non-negative value");
             
-            var userExists = await _context.Users.AnyAsync(x => x.Id == request.UserId,
+            var user = await _context.Users.FirstOrDefaultAsync(x => x.Id == request.UserId,
                 cancellationToken: cancellationToken);
 
-            if (!userExists)
+            if (user == null)
                 return BaseResponse.Failure<Hint>("Internal: user not found");
             
             var task = await _context.Tasks.Where(x => x.Id == request.TaskId)
@@ -43,7 +47,14 @@ namespace Quest.Application.Tasks.Commands
 
             if (task == null)
                 return BaseResponse.Failure<Hint>("Task was not found");
-
+            
+            if (task.Quest.IsHidden)
+            {
+                var userIsAdmin = await _userManager.IsInRoleAsync(user, "Admin");
+                if (!userIsAdmin)
+                    return BaseResponse.Failure<Hint>("Task was not found");
+            }
+            
             var participant = task.Quest.FindParticipant(request.UserId);
             
             if (participant == null)
