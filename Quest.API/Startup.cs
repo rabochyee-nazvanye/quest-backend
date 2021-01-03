@@ -30,6 +30,7 @@ using Microsoft.OpenApi.Models;
 using Newtonsoft.Json;
 using Quest.API.Helpers;
 using Quest.Application;
+using Quest.Application.Services;
 using Quest.Application.Services.ExternalAuth;
 using Quest.Application.Teams.Commands;
 using Quest.Domain.Services;
@@ -124,6 +125,11 @@ namespace Quest.API
             //add MediatR for API & Application assemblies
             services.AddMediatR(typeof(Startup).GetTypeInfo().Assembly);
             services.AddMediatR(typeof(CreateParticipantCommand).GetTypeInfo().Assembly);
+            
+            // Register LazyCache - makes the IAppCache implementation available
+            services.AddLazyCache();
+            // Add LazyCache wrapper service
+            services.AddScoped<ICacheService, CacheService>();
         }
 
       // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

@@ -6,7 +6,6 @@ namespace Quest.Application.DTOs
     {
         public TaskAttemptDTO(TaskAttempt taskAttempt)
         {
-            Id = taskAttempt.Id;
             TaskId = taskAttempt.TaskId;
             TaskName = $"{taskAttempt.TaskEntity.Group} / {taskAttempt.TaskEntity.Name}" ;
             ParticipantId = taskAttempt.ParticipantId;
@@ -16,8 +15,6 @@ namespace Quest.Application.DTOs
             ModeratorTelegramId = taskAttempt.Participant.Moderator.TelegramId;
             CorrectAnswerText = taskAttempt.TaskEntity.CorrectAnswer;
         }
-        public int Id { get; set; }
-
         public int TaskId { get; set; }
         public string TaskName { get; set; }
         

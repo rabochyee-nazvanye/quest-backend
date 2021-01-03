@@ -17,7 +17,7 @@ namespace Quest.Application.Services.ExternalAuth.AuthRequestValidators
                     Username = payload.Email
                 };
             }
-            catch (InvalidJwtException e)
+            catch (InvalidJwtException)
             {
                 return null;
             }
