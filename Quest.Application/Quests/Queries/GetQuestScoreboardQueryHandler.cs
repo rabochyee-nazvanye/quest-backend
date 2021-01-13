@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -24,45 +25,78 @@ namespace Quest.Application.Quests.Queries
             _cache = cache;
         }
 
+        private async Task<ParticipantResultDTO> CreateScoreboardParticipantResultAsync(int participantId, CancellationToken cancellationToken)
+        {
+            var team = await _context.Participants
+                .Include(x => x.TaskAttempts)
+                .ThenInclude(x => x.TaskEntity)
+                .FirstOrDefaultAsync(x => x.Id == participantId);
+
+            var acceptedAttempts = team.TaskAttempts
+                .Where(x => x.Status == TaskAttemptStatus.Accepted)
+                .ToList();
+            
+            var successfulAttempts = 
+                acceptedAttempts
+                .ToLookup(x => x.TaskId);
+
+            var bestAttempts = successfulAttempts
+                .Select(x => x.OrderBy(attempt => attempt.UsedHintsCount).First())
+                .ToList();
+
+            var bestAttemptScores = bestAttempts.Select(attempt =>
+            {
+                var taskReward = attempt.TaskEntity.Reward;
+                var totalPenaltyPercent = attempt.UsedHintsCount * UsedHintPenaltyPercent;
+                if (totalPenaltyPercent >= 100)
+                    return 0;
+
+                return (taskReward * (100 - totalPenaltyPercent)) / 100;
+            }).ToList();
+
+            var lastSuccessAttemptSubmitDate = DateTime.MinValue;
+
+            if (successfulAttempts.Any())
+            {
+                var lastAcceptedAttempt = acceptedAttempts.OrderByDescending(x => x.SubmitTime).FirstOrDefault();
+                if (lastAcceptedAttempt != null)
+                {
+                    lastSuccessAttemptSubmitDate = lastAcceptedAttempt.SubmitTime;
+                }
+            }
+
+            
+            return new ParticipantResultDTO
+            {
+                Name = team.Name,
+                Score = bestAttemptScores.Sum(),
+                LastSuccessfulSubmitTime = lastSuccessAttemptSubmitDate
+            };
+        }
+        
         private async Task<QuestScoreboardDTO> CreateScoreboardAsync(int questId, CancellationToken cancellationToken)
         {
             var quest = await _context.Quests
                 .Where(x => x.Id == questId)
                 .Include(x => x.Tasks)
                 .Include(x => x.Participants)
-                .ThenInclude(x => x.TaskAttempts)
-                .ThenInclude(x => x.TaskEntity)
                 .FirstOrDefaultAsync(cancellationToken: cancellationToken);
-            
-            var teamsResults = quest.Participants.Select(team =>
+
+            var teamsResults = new List<ParticipantResultDTO>();
+
+            foreach (var team in quest.Participants)
             {
-                var successfulAttempts = team.TaskAttempts
-                    .Where(x => x.Status == TaskAttemptStatus.Accepted)
-                    .ToLookup(x => x.TaskId);
-
-                var bestAttempts = successfulAttempts
-                    .Select(x => x.OrderBy(attempt => attempt.UsedHintsCount).First())
-                    .ToList();
-
-                var bestAttemptScores = bestAttempts.Select(attempt =>
-                {
-                    var taskReward = attempt.TaskEntity.Reward;
-                    var totalPenaltyPercent = attempt.UsedHintsCount * UsedHintPenaltyPercent;
-                    if (totalPenaltyPercent >= 100)
-                        return 0;
-
-                    return (taskReward * (100 - totalPenaltyPercent)) / 100;
-                }).ToList();
-
-                return new ParticipantResultDTO
-                {
-                    Name = team.Name,
-                    Score = bestAttemptScores.Sum()
-                };
-            }).ToList();
-
+                Task<ParticipantResultDTO> ParticipantProgressGetter() =>
+                    CreateScoreboardParticipantResultAsync(team.Id, CancellationToken.None);
+                
+                var teamResult = await _cache.GetOrAddAsync(CacheName.ScoreBoardSingleEntry, team.Id.ToString(),
+                    ParticipantProgressGetter);
+                teamsResults.Add(teamResult);
+            } 
+            
             var sortedResults = teamsResults
                 .OrderByDescending(x => x.Score)
+                .ThenBy(p => p.LastSuccessfulSubmitTime)
                 .Select((x, idx) =>
                 {
                     x.Place = idx;
@@ -80,9 +114,6 @@ namespace Quest.Application.Quests.Queries
             if (quest == null)
                 return BaseResponse.Failure<QuestScoreboardDTO>("Quest not found.");
 
-            if (!quest.IsReadyToShowResults())
-                return BaseResponse.Failure<QuestScoreboardDTO>("Results are not available yet.");
-            
             Task<QuestScoreboardDTO> ScoreBoardGetter() =>
                 CreateScoreboardAsync(request.QuestId, CancellationToken.None);
             

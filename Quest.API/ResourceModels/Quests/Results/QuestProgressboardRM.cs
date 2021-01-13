@@ -11,8 +11,10 @@ namespace Quest.API.ResourceModels.Quests.Results
             Data = new List<Dictionary<string, string>>();
             
             //populate teams scores
-            foreach (var teamProgress in dto.ParticipantProgress.OrderByDescending(x => 
-                x.Scores.Select(x => x.Value).Sum()))
+            foreach (var teamProgress in dto.ParticipantProgress
+                .OrderByDescending(x => 
+                x.Scores.Select(x => x.Value).Sum())
+                .ThenBy(x => x.LastAccSubmitTime))
             {
                 var teamInfo = new Dictionary<string, string> {{"teamname", teamProgress.Participant.Name}};
                 foreach (var taskScore in teamProgress.Scores

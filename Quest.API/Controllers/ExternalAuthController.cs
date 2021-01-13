@@ -33,6 +33,9 @@ namespace Quest.API.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> Post([FromBody] ExternalAuthBM model)
         {
+            if (!ModelState.IsValid)
+                return BadRequest();
+            
             var response = await _mediator.Send(
                 new AuthenticateCommand(model.AccessToken, model.OAuthProvider));
 
