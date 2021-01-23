@@ -49,7 +49,8 @@ namespace Quest.API.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> Get()
         {
-            var data = await _mediator.Send(new GetAllQuestsQuery());
+            var userId = _userManager.GetUserId(User);
+            var data = await _mediator.Send(new GetAllQuestsQuery(userId));
             return Ok(data.Select(QuestRMFactory.CreateBasic));
         }
 
@@ -57,7 +58,8 @@ namespace Quest.API.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> Get(int id)
         {
-            var quest = await _mediator.Send(new GetQuestByIdQuery(id));
+            var userId = _userManager.GetUserId(User);
+            var quest = await _mediator.Send(new GetQuestByIdQuery(id, userId));
 
             if (quest == null)
                 return NotFound();

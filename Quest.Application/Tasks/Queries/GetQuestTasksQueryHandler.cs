@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using MediatR;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Internal;
 using Quest.Application.DTOs;
@@ -15,10 +16,12 @@ namespace Quest.Application.Tasks.Queries
     public class GetQuestTasksQueryHandler : IRequestHandler<GetQuestTasksQuery, BaseResponse<List<TaskAndHintsDTO>>>
     {
         private readonly Db _context;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public GetQuestTasksQueryHandler(Db context)
+        public GetQuestTasksQueryHandler(Db context, UserManager<ApplicationUser> userManager)
         {
             _context = context;
+            _userManager = userManager;
         }
 
         public async Task<BaseResponse<List<TaskAndHintsDTO>>> Handle(GetQuestTasksQuery request,
@@ -37,12 +40,19 @@ namespace Quest.Application.Tasks.Queries
             if (!quest.IsReadyToReceiveTaskAttempts())
                 return BaseResponse.Failure<List<TaskAndHintsDTO>>("Quest is not in active state yet.");
 
-            var userExists = await _context.Users.AnyAsync(x => x.Id == request.UserId,
+            var user = await _context.Users.FirstOrDefaultAsync(x => x.Id == request.UserId,
                 cancellationToken: cancellationToken);
 
-            if (!userExists)
+            if (user == null)
                 return BaseResponse.Failure<List<TaskAndHintsDTO>>("Internal: request user does not exist.");
 
+            if (quest.IsHidden)
+            {
+                var userIsAdmin = await _userManager.IsInRoleAsync(user, "Admin");
+                if (!userIsAdmin)
+                    return BaseResponse.Failure<List<TaskAndHintsDTO>>("Could not find quest with provided id.");
+            }
+            
             var participant = quest.FindParticipant(request.UserId);
             
             if (participant == null)

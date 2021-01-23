@@ -25,5 +25,6 @@ namespace Quest.Domain.Models
         public abstract bool RegistrationIsAvailable();
         public List<Participant> Participants { get; set; }
         public abstract Participant FindParticipant(string userId);
+        public bool IsHidden { get; set; }
     }
 }

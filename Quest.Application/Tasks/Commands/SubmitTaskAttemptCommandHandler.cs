@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using MediatR;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Quest.Application.DTOs;
 using Quest.Application.Services;
@@ -19,12 +20,14 @@ namespace Quest.Application.Tasks.Commands
         private readonly Db _context;
         private readonly IMediator _mediator;
         private readonly ICacheService _cache;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public SubmitTaskAttemptCommandHandler(Db context, IMediator mediator, ICacheService cache)
+        public SubmitTaskAttemptCommandHandler(Db context, IMediator mediator, ICacheService cache, UserManager<ApplicationUser> userManager)
         {
             _context = context;
             _mediator = mediator;
             _cache = cache;
+            _userManager = userManager;
         }
 
         private static string Normalize(string x) => x.Trim().ToLowerInvariant();
@@ -104,11 +107,11 @@ namespace Quest.Application.Tasks.Commands
         
         public async Task<BaseResponse<TaskAndHintsDTO>> Handle(SubmitTaskAttemptCommand request, CancellationToken cancellationToken)
         {
-            var userExists = await _context.Users.AnyAsync(x => x.Id == request.UserId,
+            var user = await _context.Users.FirstOrDefaultAsync(x => x.Id == request.UserId,
                 cancellationToken: cancellationToken);
 
-            if (!userExists)
-                return BaseResponse.Failure<TaskAndHintsDTO>("Internal: user not found");
+            if (user == null)
+                return BaseResponse.Failure<TaskAndHintsDTO>("Internal: user was not found");
             
             var task = await _context.Tasks.Where(x => x.Id == request.TaskId)
                 .Include(x => x.Quest)
@@ -123,7 +126,14 @@ namespace Quest.Application.Tasks.Commands
 
             if (task == null)
                 return BaseResponse.Failure<TaskAndHintsDTO>("Task was not found");
-            
+
+            if (task.Quest.IsHidden)
+            {
+                var userIsAdmin = await _userManager.IsInRoleAsync(user, "Admin");
+                if (!userIsAdmin)
+                    return BaseResponse.Failure<TaskAndHintsDTO>("Task was not found");
+            }
+
             var participant = task.Quest.FindParticipant(request.UserId);
             
             if (participant == null)
