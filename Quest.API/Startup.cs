@@ -35,6 +35,10 @@ using Quest.Application.Services.ExternalAuth;
 using Quest.Application.Teams.Commands;
 using Quest.Domain.Services;
 using IHostingEnvironment = Microsoft.AspNetCore.Hosting.IHostingEnvironment;
+using SendGrid;
+using SendGrid.Extensions.DependencyInjection;
+using SendGrid.Helpers.Mail;
+
 
 namespace Quest.API
 {
@@ -130,6 +134,8 @@ namespace Quest.API
             services.AddLazyCache();
             // Add LazyCache wrapper service
             services.AddScoped<ICacheService, CacheService>();
+
+            services.AddSendGrid(options => { options.ApiKey = Configuration["SendGrid:ApiKey"]; });
         }
 
       // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
