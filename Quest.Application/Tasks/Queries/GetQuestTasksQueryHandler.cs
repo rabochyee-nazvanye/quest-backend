@@ -44,14 +44,15 @@ namespace Quest.Application.Tasks.Queries
                 return BaseResponse.Failure<List<TaskAndHintsDTO>>("Internal: request user does not exist.");
 
             var userIsAdmin = await _userManager.IsInRoleAsync(user, "Admin");
-            var userIsQuestCreator = request.UserId == quest.AuthorId; 
+            var userIsQuestCreator = request.UserId == quest.AuthorId;
+            var userIsAdminOrQuestCreator = (userIsAdmin || userIsQuestCreator);
             
-            if (!quest.IsReadyToReceiveTaskAttempts() && !userIsAdmin && !userIsQuestCreator)
+            if (!quest.IsReadyToReceiveTaskAttempts() && !userIsAdminOrQuestCreator)
             {
                 return BaseResponse.Failure<List<TaskAndHintsDTO>>("Quest is not in active state yet.");
             }
 
-            if (quest.IsHidden && !userIsAdmin && !userIsQuestCreator)
+            if (quest.IsHidden && !userIsAdminOrQuestCreator)
             {
                 return BaseResponse.Failure<List<TaskAndHintsDTO>>("Could not find quest with provided id.");
             }
