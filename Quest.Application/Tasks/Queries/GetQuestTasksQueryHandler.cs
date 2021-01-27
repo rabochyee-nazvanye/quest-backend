@@ -37,19 +37,24 @@ namespace Quest.Application.Tasks.Queries
             if (quest == null)
                 return BaseResponse.Failure<List<TaskAndHintsDTO>>("Could not find quest with provided id.");
 
-            if (!quest.IsReadyToReceiveTaskAttempts())
-                return BaseResponse.Failure<List<TaskAndHintsDTO>>("Quest is not in active state yet.");
-
             var user = await _context.Users.FirstOrDefaultAsync(x => x.Id == request.UserId,
                 cancellationToken: cancellationToken);
 
             if (user == null)
                 return BaseResponse.Failure<List<TaskAndHintsDTO>>("Internal: request user does not exist.");
 
+            var userIsAdmin = await _userManager.IsInRoleAsync(user, "Admin");
+            var userIsQuestCreator = user.id == quest.AuthorId; 
+            
+            if (!quest.IsReadyToReceiveTaskAttempts())
+            {
+                if (!userIsAdmin && !userIsQuestCreator)
+                    return BaseResponse.Failure<List<TaskAndHintsDTO>>("Quest is not in active state yet.");
+            }
+
             if (quest.IsHidden)
             {
-                var userIsAdmin = await _userManager.IsInRoleAsync(user, "Admin");
-                if (!userIsAdmin)
+                if (!userIsAdmin && !userIsQuestCreator)
                     return BaseResponse.Failure<List<TaskAndHintsDTO>>("Could not find quest with provided id.");
             }
             
@@ -88,7 +93,7 @@ namespace Quest.Application.Tasks.Queries
                 })
                 .ToList();
 
-
+            
             return BaseResponse.Success(participantTaskStatuses, "Success");
         }
     }
