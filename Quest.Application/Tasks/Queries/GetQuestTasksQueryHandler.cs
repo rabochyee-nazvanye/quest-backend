@@ -44,7 +44,7 @@ namespace Quest.Application.Tasks.Queries
                 return BaseResponse.Failure<List<TaskAndHintsDTO>>("Internal: request user does not exist.");
 
             var userIsAdmin = await _userManager.IsInRoleAsync(user, "Admin");
-            var userIsQuestCreator = user.id == quest.AuthorId; 
+            var userIsQuestCreator = request.UserId == quest.AuthorId; 
             
             if (!quest.IsReadyToReceiveTaskAttempts())
             {
