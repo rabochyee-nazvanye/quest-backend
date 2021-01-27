@@ -46,16 +46,14 @@ namespace Quest.Application.Tasks.Queries
             var userIsAdmin = await _userManager.IsInRoleAsync(user, "Admin");
             var userIsQuestCreator = request.UserId == quest.AuthorId; 
             
-            if (!quest.IsReadyToReceiveTaskAttempts())
+            if (!quest.IsReadyToReceiveTaskAttempts() && !userIsAdmin && !userIsQuestCreator)
             {
-                if (!userIsAdmin && !userIsQuestCreator)
-                    return BaseResponse.Failure<List<TaskAndHintsDTO>>("Quest is not in active state yet.");
+                return BaseResponse.Failure<List<TaskAndHintsDTO>>("Quest is not in active state yet.");
             }
 
-            if (quest.IsHidden)
+            if (quest.IsHidden && !userIsAdmin && !userIsQuestCreator)
             {
-                if (!userIsAdmin && !userIsQuestCreator)
-                    return BaseResponse.Failure<List<TaskAndHintsDTO>>("Could not find quest with provided id.");
+                return BaseResponse.Failure<List<TaskAndHintsDTO>>("Could not find quest with provided id.");
             }
             
             var participant = quest.FindParticipant(request.UserId);
