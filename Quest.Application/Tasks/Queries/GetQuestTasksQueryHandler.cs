@@ -37,20 +37,24 @@ namespace Quest.Application.Tasks.Queries
             if (quest == null)
                 return BaseResponse.Failure<List<TaskAndHintsDTO>>("Could not find quest with provided id.");
 
-            if (!quest.IsReadyToReceiveTaskAttempts())
-                return BaseResponse.Failure<List<TaskAndHintsDTO>>("Quest is not in active state yet.");
-
             var user = await _context.Users.FirstOrDefaultAsync(x => x.Id == request.UserId,
                 cancellationToken: cancellationToken);
 
             if (user == null)
                 return BaseResponse.Failure<List<TaskAndHintsDTO>>("Internal: request user does not exist.");
 
-            if (quest.IsHidden)
+            var userIsAdmin = await _userManager.IsInRoleAsync(user, "Admin");
+            var userIsQuestCreator = request.UserId == quest.AuthorId;
+            var userIsAdminOrQuestCreator = (userIsAdmin || userIsQuestCreator);
+            
+            if (!quest.IsReadyToReceiveTaskAttempts() && !userIsAdminOrQuestCreator)
             {
-                var userIsAdmin = await _userManager.IsInRoleAsync(user, "Admin");
-                if (!userIsAdmin)
-                    return BaseResponse.Failure<List<TaskAndHintsDTO>>("Could not find quest with provided id.");
+                return BaseResponse.Failure<List<TaskAndHintsDTO>>("Quest is not in active state yet.");
+            }
+
+            if (quest.IsHidden && !userIsAdminOrQuestCreator)
+            {
+                return BaseResponse.Failure<List<TaskAndHintsDTO>>("Could not find quest with provided id.");
             }
             
             var participant = quest.FindParticipant(request.UserId);
@@ -88,7 +92,7 @@ namespace Quest.Application.Tasks.Queries
                 })
                 .ToList();
 
-
+            
             return BaseResponse.Success(participantTaskStatuses, "Success");
         }
     }
