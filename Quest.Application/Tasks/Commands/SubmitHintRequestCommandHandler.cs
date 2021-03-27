@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -72,6 +73,11 @@ namespace Quest.Application.Tasks.Commands
             if (participant.UsedHints.Any(x => x.HintId == requestedHint.Id))
                 return BaseResponse.Success(requestedHint, "Success");
 
+            if (participant is Team team && team.GetDeadline() <= DateTime.Now)
+            {
+                return BaseResponse.Failure<Hint>("Can't give any new hints after the deadline.");
+            }
+            
             participant.UsedHints.Add(new ParticipantHint
             {
                 ParticipantId = participant.Id,

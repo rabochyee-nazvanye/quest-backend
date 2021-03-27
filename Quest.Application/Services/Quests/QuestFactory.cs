@@ -20,7 +20,8 @@ namespace Quest.Application.Services
                         EndDate = args.EndDate,
                         RegistrationDeadline = args.RegistrationDeadline,
                         AuthorId = args.AuthorId,
-                        MaxTeamSize = args.MaxTeamSize
+                        MaxTeamSize = args.MaxTeamSize,
+                        TimeToComplete = args.TimeToComplete
                     };
                 case SoloInfiniteConstructorArgs args:
                     return new SoloInfiniteQuest
@@ -28,7 +29,7 @@ namespace Quest.Application.Services
                         Name = args.Name,
                         Description = args.Description,
                         ImageUrl = args.ImageUrl,
-                        AuthorId = args.AuthorId,
+                        AuthorId = args.AuthorId
                     };
                 default:
                     throw new ArgumentOutOfRangeException(nameof(type), type, $"{type} is not supported");

@@ -184,5 +184,19 @@ namespace Quest.API.Controllers
 
             return Ok(new QuestProgressboardRM(response.Result));
         }
+        
+        [Authorize]
+        [HttpGet("{id}/status")] 
+        public async Task<IActionResult> GetQuestStatus(int id)
+        {
+            var userId = _userManager.GetUserId(User);
+
+            var response = await _mediator.Send(new GetQuestStatusQuery(id,userId));
+
+            if (response.Result == null)
+                return ApiError.ProblemDetails(HttpStatusCode.Forbidden, response.Message);
+
+            return Ok(new QuestStatusRM(response.Result));
+        }
     }
 }

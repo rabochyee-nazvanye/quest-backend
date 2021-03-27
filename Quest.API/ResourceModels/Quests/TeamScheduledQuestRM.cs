@@ -13,6 +13,7 @@ namespace Quest.API.ResourceModels.Quests
             StartDate = row.StartDate;
             EndDate = row.EndDate;
             Status = row.GetQuestStatus().ToString().ToLowerInvariant();
+            TimeToCompleteInMinutes = (int)row.TimeToComplete.TotalMinutes;
         }
         public DateTime RegistrationDeadline { get; set; }
         public DateTime StartDate { get; set; }
@@ -20,5 +21,6 @@ namespace Quest.API.ResourceModels.Quests
         public string Status { get; set; }
         protected override bool CheckIsInfinite() => false;
         protected override string GetQuestType() => QuestParticipantType.Team.ToString().ToLowerInvariant();
+        public int TimeToCompleteInMinutes { get; set; }
     }
 }

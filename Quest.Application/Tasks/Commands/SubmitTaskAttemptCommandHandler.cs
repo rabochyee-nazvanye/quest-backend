@@ -141,6 +141,11 @@ namespace Quest.Application.Tasks.Commands
 
             if (!task.Quest.IsReadyToReceiveTaskAttempts())
                 return BaseResponse.Failure<TaskAndHintsDTO>("Quest is not in active state yet.");
+            
+            if (participant is Team team && team.GetDeadline() <= DateTime.Now)
+            {
+                return BaseResponse.Failure<TaskAndHintsDTO>("Can't receive any task attempts after the deadline.");
+            }
 
             var usedHints = participant.UsedHints
                 .Where(x => x.Hint.TaskId == task.Id)

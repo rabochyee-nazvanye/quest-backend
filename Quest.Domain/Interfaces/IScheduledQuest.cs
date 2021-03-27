@@ -11,5 +11,6 @@ namespace Quest.Domain.Interfaces
         public DateTime EndDate { get; set; }
         public bool ResultsAvailable { get; set; }
         public TeamScheduledQuest.QuestStatus GetQuestStatus();
+        public TimeSpan TimeToComplete { get; set; }
     }
 }
