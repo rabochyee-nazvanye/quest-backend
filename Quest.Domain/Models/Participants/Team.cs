@@ -30,7 +30,11 @@ namespace Quest.Domain.Models
                         break;
                     }
                     
-                    deadline = TasksOpenTime.Add(scheduledQuest.TimeToComplete);
+                    var timeToCompleteDeadline = TasksOpenTime.Add(scheduledQuest.TimeToComplete);
+                    if (timeToCompleteDeadline < deadline)
+                    {
+                        deadline = timeToCompleteDeadline;
+                    }
                     break;
                 }
             }
