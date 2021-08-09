@@ -17,5 +17,6 @@ namespace Quest.Application.Tasks.Commands
         public string Group { get; set; }
         public int QuestId { get; set; }
         public List<string> Hints { get; set; }
+        public string VideoUrl { get; set; }
     }
 }

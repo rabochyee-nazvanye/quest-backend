@@ -24,5 +24,7 @@ namespace Quest.Domain.Models
         
         //quick and dirty multiple answers support implementation
         public List<string> CorrectAnswers => CorrectAnswer.Split(";").ToList();
+        
+        public string VideoUrl { get; set; }
     }
 }
