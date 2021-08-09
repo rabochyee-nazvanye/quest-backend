@@ -24,6 +24,8 @@ namespace Quest.API.ResourceModels.Tasks
             AdminComment = dto.TaskAttempt?.AdminComment;
             LastSubmittedAnswer = dto.TaskAttempt?.Text;
             UsedHints = dto.UsedHints.Select(x => new HintRM(x)).ToList();
+
+            VideoUrl = dto.Task.VideoUrl;
         }
         
         public int Id { get; set; }
@@ -37,5 +39,6 @@ namespace Quest.API.ResourceModels.Tasks
         public string LastSubmittedAnswer { get; set; }
         public string Status { get; set; }
         public string AdminComment { get; set; }
+        public string VideoUrl { get; set; }
     }
 }

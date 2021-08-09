@@ -36,7 +36,8 @@ namespace Quest.Application.Tasks.Commands
                 Question = request.Question,
                 Reward = request.Reward,
                 VerificationType = request.VerificationIsManual ? VerificationType.Manual : VerificationType.Automatic,
-                Hints = new List<Hint>()
+                Hints = new List<Hint>(),
+                VideoUrl = request.VideoUrl
             };
 
             if (request.Hints != null && request.Hints.Any())

@@ -12,5 +12,7 @@ namespace Quest.API.BindingModels.Tasks
         [Required] public string CorrectAnswer { get; set; }
         [Required] public string Group { get; set; }
         [Required] public List<string> Hints { get; set; }
+        
+        public string VideoUrl { get; set; }
     }
 }

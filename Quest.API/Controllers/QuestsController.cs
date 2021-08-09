@@ -150,7 +150,8 @@ namespace Quest.API.Controllers
                 Question = model.Question,
                 Reward =  model.Reward,
                 VerificationIsManual = model.VerificationIsManual,
-                Hints = model.Hints
+                Hints = model.Hints,
+                VideoUrl = model.VideoUrl
             });
 
             if (response.Result == null)
