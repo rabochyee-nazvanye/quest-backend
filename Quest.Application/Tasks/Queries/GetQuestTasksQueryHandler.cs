@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -61,6 +62,12 @@ namespace Quest.Application.Tasks.Queries
             
             if (participant == null)
                 return BaseResponse.Failure<List<TaskAndHintsDTO>>("Could not find participant of this user.");
+
+            if (participant is Team team && team.TasksOpenTime == DateTime.MinValue)
+            {
+                team.TasksOpenTime = DateTime.Now;
+                await _context.SaveChangesAsync(cancellationToken);    
+            }
             
             var allTasks = await _context.Tasks
                 .Where(x => x.QuestId == request.QuestId)

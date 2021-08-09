@@ -17,5 +17,6 @@ namespace Quest.API.BindingModels.Quests
 
         public QuestParticipantType ParticipantType { get; set; }
         public bool IsInfinite { get; set; }
+        public int TimeToCompleteInMinutes { get; set; }
     }
 }

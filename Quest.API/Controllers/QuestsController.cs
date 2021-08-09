@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Runtime.Serialization.Json;
@@ -160,6 +161,39 @@ namespace Quest.API.Controllers
             return Created($"/quests/{id}/tasks/{response.Result.Id}",response.Result.Id);
         }
         
+        [Authorize]
+        [HttpPost("{id}/tasks/ops/batch-upload")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> CreateTask(int id, [FromBody]List<CreateTaskBM> model)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest();
+
+            var createdTaskIds = new List<int>();
+            foreach (var task in model)
+            {
+                var response = await _mediator.Send(new CreateTaskCommand()
+                {
+                    CorrectAnswer =  task.CorrectAnswer,
+                    Group = task.Group,
+                    Name = task.Name,
+                    QuestId = id,
+                    Question = task.Question,
+                    Reward =  task.Reward,
+                    VerificationIsManual = task.VerificationIsManual,
+                    Hints = task.Hints
+                });
+
+                if (response.Result == null)
+                    return ApiError.ProblemDetails(HttpStatusCode.Forbidden, response.Message);
+
+                createdTaskIds.Add(response.Result.Id);
+            }
+            
+
+            return Created($"/quests/{id}/tasks/", string.Join(',', createdTaskIds));
+        }
+        
         [AllowAnonymous]
         [HttpGet("{id}/scoreboard")]
         public async Task<IActionResult> GetQuestScoreboard(int id)
@@ -184,6 +218,20 @@ namespace Quest.API.Controllers
                 return ApiError.ProblemDetails(HttpStatusCode.Forbidden, response.Message);
 
             return Ok(new QuestProgressboardRM(response.Result));
+        }
+        
+        [Authorize]
+        [HttpGet("{id}/status")] 
+        public async Task<IActionResult> GetQuestStatus(int id)
+        {
+            var userId = _userManager.GetUserId(User);
+
+            var response = await _mediator.Send(new GetQuestStatusQuery(id,userId));
+
+            if (response.Result == null)
+                return ApiError.ProblemDetails(HttpStatusCode.Forbidden, response.Message);
+
+            return Ok(new QuestStatusRM(response.Result));
         }
     }
 }

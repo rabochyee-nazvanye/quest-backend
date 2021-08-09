@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Quest.DAL.Data;
@@ -9,9 +10,10 @@ using Quest.DAL.Data;
 namespace Quest.DAL.Migrations
 {
     [DbContext(typeof(Db))]
-    partial class DbModelSnapshot : ModelSnapshot
+    [Migration("20210327172734_TimeToComplete")]
+    partial class TimeToComplete
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -389,9 +391,6 @@ namespace Quest.DAL.Migrations
 
                     b.Property<int>("VerificationType")
                         .HasColumnType("integer");
-
-                    b.Property<string>("VideoUrl")
-                        .HasColumnType("text");
 
                     b.HasKey("Id");
 

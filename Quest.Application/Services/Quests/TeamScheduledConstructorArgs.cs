@@ -13,6 +13,7 @@ namespace Quest.Application.Services
         public DateTime RegistrationDeadline { get; set; }
         public string AuthorId { get; set; }
         public int MaxTeamSize { get; set; }
+        public TimeSpan TimeToComplete { get; set; }
 
         public BaseResponse<bool> Validate()
         {

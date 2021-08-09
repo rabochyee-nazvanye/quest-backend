@@ -32,6 +32,7 @@ namespace Quest.Domain.Models
             
             return QuestStatus.Scheduled;
         }
+        public TimeSpan TimeToComplete { get; set; }
 
 
         public enum QuestStatus

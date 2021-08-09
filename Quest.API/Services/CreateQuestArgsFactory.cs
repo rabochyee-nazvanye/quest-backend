@@ -18,7 +18,7 @@ namespace Quest.API.Services
                             AuthorId = userId,
                             Description = model.Description,
                             ImageUrl = model.ImageUrl,
-                            Name = model.Name
+                            Name = model.Name,
                         };
                     default:
                         throw new ArgumentOutOfRangeException(nameof(model.ParticipantType), model.ParticipantType, 
@@ -37,7 +37,8 @@ namespace Quest.API.Services
                         RegistrationDeadline = model.RegistrationDeadline,
                         StartDate = model.StartDate,
                         EndDate = model.EndDate,
-                        MaxTeamSize = model.MaxTeamSize
+                        MaxTeamSize = model.MaxTeamSize,
+                        TimeToComplete = TimeSpan.FromMinutes(model.TimeToCompleteInMinutes)
                     };
                 default:
                     throw new ArgumentOutOfRangeException(nameof(model.ParticipantType), model.ParticipantType,          

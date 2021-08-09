@@ -14,5 +14,32 @@ namespace Quest.Domain.Models
         public string InviteTokenSecret { get; set; }
         public bool ValidateSecret(string secret) => InviteTokenSecret == secret;
         public List<TeamUser> Members { get; set; }
+        
+        public DateTime TasksOpenTime { get; set; }
+        public DateTime GetDeadline()
+        {
+            var deadline = DateTime.MaxValue;
+            switch (Quest)
+            {
+                case IScheduledQuest scheduledQuest: // I am not proud of this code
+                {
+                    deadline = scheduledQuest.EndDate;
+
+                    if (scheduledQuest.TimeToComplete == TimeSpan.Zero)
+                    {
+                        break;
+                    }
+                    
+                    var timeToCompleteDeadline = TasksOpenTime.Add(scheduledQuest.TimeToComplete);
+                    if (timeToCompleteDeadline < deadline)
+                    {
+                        deadline = timeToCompleteDeadline;
+                    }
+                    break;
+                }
+            }
+
+            return deadline;
+        }
     }
 }
