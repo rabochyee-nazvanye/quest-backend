@@ -23,10 +23,13 @@ namespace Quest.Application.Tasks.Commands
 
         public async Task<BaseResponse<TaskEntity>> Handle(CreateTaskCommand request, CancellationToken cancellationToken)
         {
-            var questExists = await _context.Quests.AnyAsync(x => x.Id == request.QuestId, cancellationToken: cancellationToken);
-            if (!questExists)
+            var quest = await _context.Quests.FirstOrDefaultAsync(x => x.Id == request.QuestId, cancellationToken: cancellationToken);
+            if (quest == null)
                 return BaseResponse.Failure<TaskEntity>("Quest was not found");
 
+            if (quest.AuthorId != request.UserId)
+                return BaseResponse.Failure<TaskEntity>("Only quest authors can add new tasks");
+            
             var task = new TaskEntity
             {
                 CorrectAnswer = request.CorrectAnswer,

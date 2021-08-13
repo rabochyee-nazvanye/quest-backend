@@ -18,5 +18,6 @@ namespace Quest.Application.Tasks.Commands
         public int QuestId { get; set; }
         public List<string> Hints { get; set; }
         public string VideoUrl { get; set; }
+        public string UserId { get; set; }
     }
 }

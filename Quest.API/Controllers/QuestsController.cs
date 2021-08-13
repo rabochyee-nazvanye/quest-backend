@@ -136,11 +136,12 @@ namespace Quest.API.Controllers
         
         [Authorize]
         [HttpPost("{id}/tasks")]
-        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> CreateTask(int id, [FromBody]CreateTaskBM model)
         {
             if (!ModelState.IsValid)
                 return BadRequest();
+            
+            var userId = _userManager.GetUserId(User);
             
             var response = await _mediator.Send(new CreateTaskCommand()
             {
@@ -152,7 +153,8 @@ namespace Quest.API.Controllers
                 Reward =  model.Reward,
                 VerificationIsManual = model.VerificationIsManual,
                 Hints = model.Hints,
-                VideoUrl = model.VideoUrl
+                VideoUrl = model.VideoUrl,
+                UserId = userId
             });
 
             if (response.Result == null)
@@ -163,11 +165,12 @@ namespace Quest.API.Controllers
         
         [Authorize]
         [HttpPost("{id}/tasks/ops/batch-upload")]
-        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> CreateTask(int id, [FromBody]List<CreateTaskBM> model)
         {
             if (!ModelState.IsValid)
                 return BadRequest();
+            
+            var userId = _userManager.GetUserId(User);
 
             var createdTaskIds = new List<int>();
             foreach (var task in model)
@@ -181,7 +184,9 @@ namespace Quest.API.Controllers
                     Question = task.Question,
                     Reward =  task.Reward,
                     VerificationIsManual = task.VerificationIsManual,
-                    Hints = task.Hints
+                    Hints = task.Hints,
+                    VideoUrl =  task.VideoUrl,
+                    UserId = userId
                 });
 
                 if (response.Result == null)
