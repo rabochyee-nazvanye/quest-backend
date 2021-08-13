@@ -51,7 +51,7 @@ namespace Quest.Domain.Models
             return GetQuestStatus() == QuestStatus.InProgress;
         }
 
-        public override bool RegistrationIsAvailable() => RegistrationDeadline > DateTime.Now;
+        public override bool RegistrationIsAvailable() => EndDate > DateTime.Now;
 
         public override Participant FindParticipant(string userId)
         {
