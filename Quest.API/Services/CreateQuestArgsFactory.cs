@@ -38,7 +38,8 @@ namespace Quest.API.Services
                         StartDate = model.StartDate,
                         EndDate = model.EndDate,
                         MaxTeamSize = model.MaxTeamSize,
-                        TimeToComplete = TimeSpan.FromMinutes(model.TimeToCompleteInMinutes)
+                        TimeToComplete = TimeSpan.FromMinutes(model.TimeToCompleteInMinutes),
+                        IsRegistrationLimited = model.IsRegistrationLimited
                     };
                 default:
                     throw new ArgumentOutOfRangeException(nameof(model.ParticipantType), model.ParticipantType,          

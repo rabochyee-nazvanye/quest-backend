@@ -7,6 +7,7 @@ namespace Quest.Domain.Interfaces
     public interface IScheduledQuest : IQuest
     {
         public DateTime RegistrationDeadline { get; set; }
+        public bool IsRegistrationLimited { get; set; }
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
         public bool ResultsAvailable { get; set; }

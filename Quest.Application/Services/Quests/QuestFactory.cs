@@ -19,6 +19,7 @@ namespace Quest.Application.Services
                         StartDate = args.StartDate,
                         EndDate = args.EndDate,
                         RegistrationDeadline = args.RegistrationDeadline,
+                        IsRegistrationLimited = args.IsRegistrationLimited,
                         AuthorId = args.AuthorId,
                         MaxTeamSize = args.MaxTeamSize,
                         TimeToComplete = args.TimeToComplete

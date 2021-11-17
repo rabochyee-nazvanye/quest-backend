@@ -8,6 +8,7 @@ namespace Quest.Domain.Models
     public class TeamScheduledQuest: QuestEntity, ITeamQuest, IScheduledQuest
     {
         public DateTime RegistrationDeadline { get; set; }
+        public bool IsRegistrationLimited { get; set; }
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
         public int MaxTeamSize { get; set; }
@@ -27,7 +28,7 @@ namespace Quest.Domain.Models
             if (StartDate < timeNow && timeNow < EndDate)
                 return QuestStatus.InProgress;
             
-            if (RegistrationDeadline < timeNow)
+            if (RegistrationDeadline < timeNow && IsRegistrationLimited)
                 return QuestStatus.RegistrationOver;
             
             return QuestStatus.Scheduled;

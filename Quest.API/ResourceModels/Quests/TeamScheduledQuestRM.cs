@@ -14,8 +14,10 @@ namespace Quest.API.ResourceModels.Quests
             EndDate = row.EndDate;
             Status = row.GetQuestStatus().ToString().ToLowerInvariant();
             TimeToCompleteInMinutes = (int)row.TimeToComplete.TotalMinutes;
+            IsRegistrationLimited = row.IsRegistrationLimited;
         }
         public DateTime RegistrationDeadline { get; set; }
+        public bool IsRegistrationLimited { get; set; }
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
         public string Status { get; set; }
