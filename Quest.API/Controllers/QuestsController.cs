@@ -94,6 +94,33 @@ namespace Quest.API.Controllers
         }
 
         [Authorize]
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateQuest([FromRoute]int id, [FromQuery] UpdateQuestBM model)
+        {
+            var userId = _userManager.GetUserId(User);
+            if (!ModelState.IsValid)
+                return BadRequest();
+            var quest = await _mediator.Send(new GetQuestByIdQuery(id, userId));
+            if (quest == null)
+                return NotFound();
+            IQuestConstructorArgs questConstructorArgs;
+            
+            try
+            {
+                questConstructorArgs = CreateQuestArgsFactory.Create(model, userId);
+            }
+            catch (ArgumentOutOfRangeException exception)
+            {
+                return ApiError.ProblemDetails(HttpStatusCode.Forbidden, exception.Message);
+            }
+
+            var response = await _mediator.Send(new UpdateQuestInfoCommand(questConstructorArgs));
+            if (response.Result == null)
+                return ApiError.ProblemDetails(HttpStatusCode.Forbidden, response.Message);
+            return Ok();
+        }
+        
+        [Authorize]
         [HttpGet("{id}/participants")]
         [ExactQueryParam("members")]
         public async Task<IActionResult> GetQuestTeamByUserId(int id, [FromQuery]string members)

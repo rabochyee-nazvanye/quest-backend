@@ -6,7 +6,7 @@ using Quest.API.Interfaces;
 
 namespace Quest.API.BindingModels.Quests
 {
-    public class CreateQuestBM : IQuestBM
+    public class UpdateQuestBM : IQuestBM
     {
         [Required] public string Name { get; set; }
         [Required] public string Description { get; set; }

@@ -1,13 +1,14 @@
 using System;
 using Quest.API.BindingModels.Quests;
 using Quest.API.Enums;
+using Quest.API.Interfaces;
 using Quest.Application.Services;
 
 namespace Quest.API.Services
 {
     public static class CreateQuestArgsFactory
     {
-        public static IQuestConstructorArgs Create(CreateQuestBM model, string userId)
+        public static IQuestConstructorArgs Create(IQuestBM model, string userId)
         {
             if (model.IsInfinite)
                 switch (model.ParticipantType)
