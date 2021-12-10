@@ -23,6 +23,7 @@ namespace Quest.Domain.Models
         public abstract bool IsReadyToShowResults();
         public abstract bool IsReadyToReceiveTaskAttempts();
         public abstract bool RegistrationIsAvailable();
+        public bool IsRegistrationLimited { get; set; }
         public List<Participant> Participants { get; set; }
         public abstract Participant FindParticipant(string userId);
         public bool IsHidden { get; set; }
